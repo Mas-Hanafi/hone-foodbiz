@@ -19,7 +19,8 @@ const METHOD_LABEL: Record<string, string> = { cash: "Tunai", qris: "QRIS", tran
 const PAGE: Record<string, string> = {
   "58mm": "@page { margin: 0 } .receipt { width: 58mm; font-size: 11px }",
   "80mm": "@page { margin: 0 } .receipt { width: 80mm; font-size: 12px }",
-  a4: "@page { size: A4; margin: 15mm } .receipt { width: 100%; font-size: 13px }",
+  // A4: a centred column a hand's width wide, so amounts sit next to their labels instead of at the page edge.
+  a4: "@page { size: A4; margin: 20mm } .receipt { width: 120mm; font-size: 13px } @media print { .receipt { right: 0; margin: 0 auto } }",
 };
 
 export default async function StrukPage({ params, searchParams }: PageProps<"/kasir/struk/[id]">) {
@@ -46,7 +47,7 @@ export default async function StrukPage({ params, searchParams }: PageProps<"/ka
   return (
     <main className="mx-auto grid w-full max-w-4xl gap-6 px-4 py-6 sm:px-8 md:grid-cols-[1fr_auto] md:items-start">
       <style>{`${PAGE[o.paper_size] ?? PAGE["58mm"]}
-        @media print { body * { visibility: hidden } .receipt, .receipt * { visibility: visible } .receipt { position: absolute; left: 0; top: 0; box-shadow: none; border-radius: 0; padding: 3mm } }`}</style>
+        @media print { html, body { background: #fff } body * { visibility: hidden } .receipt, .receipt * { visibility: visible } .receipt { position: absolute; left: 0; top: 0; box-shadow: none; border-radius: 0; padding: 3mm } }`}</style>
 
       <div className="grid content-start gap-4 print:hidden">
         <ButtonLink href="/kasir" look="text" className="-ml-3 justify-self-start"><ArrowLeft className="size-4" aria-hidden />Kasir</ButtonLink>
