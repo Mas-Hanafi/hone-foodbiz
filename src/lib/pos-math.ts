@@ -30,6 +30,29 @@ export function computeTotals(input: TotalsInput): Totals {
   return { subtotal, discount, service, tax, rounding, total: beforeRounding + rounding };
 }
 
+export type PaymentLine = { method: Method; amount: number; tendered: number };
+
+/** Cash rounding only applies when the whole sale is paid in cash. */
+export const roundingMethod = (payments: { method: Method }[]): Method =>
+  payments.length === 1 ? payments[0].method : "transfer";
+
+/**
+ * Validates payments against the total and normalises them for record_sale.
+ * A single payment always covers the total; a split must add up exactly. At most one cash line,
+ * and only cash may be over-tendered (that is the change).
+ */
+export function settlePayments(total: number, payments: PaymentLine[]): { ok: true; payments: PaymentLine[] } | { ok: false; message: string } {
+  if (payments.length === 0) return { ok: false, message: "Pilih metode bayar." };
+  if (payments.filter((p) => p.method === "cash").length > 1) return { ok: false, message: "Tunai hanya boleh satu baris." };
+  const lines = payments.length === 1 ? [{ ...payments[0], amount: total }] : payments;
+  if (lines.some((p) => !Number.isInteger(p.amount) || p.amount <= 0)) return { ok: false, message: "Setiap pembayaran harus lebih dari Rp0." };
+  const sum = lines.reduce((s, p) => s + p.amount, 0);
+  if (sum !== total) return { ok: false, message: `Pembayaran Rp${sum.toLocaleString("id-ID")} belum sama dengan total Rp${total.toLocaleString("id-ID")}.` };
+  const normalised = lines.map((p) => ({ ...p, tendered: p.method === "cash" ? p.tendered : p.amount }));
+  if (normalised.some((p) => p.tendered < p.amount)) return { ok: false, message: "Uang tunai yang diterima kurang." };
+  return { ok: true, payments: normalised };
+}
+
 /** Exact amount plus the next common banknote totals above it, at most four. */
 export function suggestTendered(total: number): number[] {
   if (total <= 0) return [];

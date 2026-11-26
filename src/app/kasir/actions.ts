@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { dbError, done, fail, parse, rupiah } from "@/lib/form";
 import { TERMINAL_COOKIE, loadCatalog, loadOpenShift, loadTerminal, terminalFromCookie } from "@/lib/pos-data";
-import { businessDate, computeTotals, receiptNo } from "@/lib/pos-math";
+import { businessDate, computeTotals, receiptNo, roundingMethod, settlePayments } from "@/lib/pos-math";
 import { getContext } from "@/lib/session";
 
 const POS = "/kasir";
@@ -79,8 +79,11 @@ export async function moveCash(formData: FormData) {
 const saleInput = z.object({
   id: z.uuid(),
   orderType: z.enum(["takeaway", "dine_in"]),
-  method: z.enum(["cash", "qris", "transfer"]),
-  tendered: z.number().int().nonnegative(),
+  tableLabel: z.string().trim().max(40).optional(),
+  payments: z
+    .array(z.object({ method: z.enum(["cash", "qris", "transfer"]), amount: z.number().int().nonnegative(), tendered: z.number().int().nonnegative() }))
+    .min(1)
+    .max(3),
   discountPct: z.number().min(0).max(100),
   lines: z
     .array(
@@ -145,11 +148,11 @@ export async function recordSale(raw: SaleInput): Promise<SaleResult> {
     lines: items.map((i) => ({ unitPrice: i.unit_price, qty: i.qty })),
     discountPct: input.discountPct,
     serviceRate: o.service_rate, taxRate: o.tax_rate, taxInclusive: o.tax_inclusive, cashRounding: o.cash_rounding,
-    method: input.method,
+    method: roundingMethod(input.payments),
   });
   if (totals.total <= 0) return { ok: false, message: "Total harus lebih dari Rp0." };
-  const tendered = input.method === "cash" ? input.tendered : totals.total;
-  if (tendered < totals.total) return { ok: false, message: "Uang yang diterima kurang dari total." };
+  const settled = settlePayments(totals.total, input.payments);
+  if (!settled.ok) return { ok: false, message: settled.message };
 
   const now = new Date();
   const date = businessDate(now, o.timezone);
@@ -177,6 +180,7 @@ export async function recordSale(raw: SaleInput): Promise<SaleResult> {
         business_date: date,
         created_at: now.toISOString(),
         order_type: input.orderType,
+        table_label: input.tableLabel || null,
         discount_total: totals.discount,
         tax_rate: o.tax_rate,
         tax_inclusive: o.tax_inclusive,
@@ -186,7 +190,7 @@ export async function recordSale(raw: SaleInput): Promise<SaleResult> {
         rounding: totals.rounding,
         total: totals.total,
         items,
-        payments: [{ method: input.method, amount: totals.total, tendered }],
+        payments: settled.payments,
       },
     });
     if (!error) return { ok: true, id: input.id };

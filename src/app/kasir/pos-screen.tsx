@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { LoaderCircle, Minus, Plus, Search, ShoppingBag, Trash2, X } from "lucide-react";
+import { LoaderCircle, Minus, PauseCircle, Plus, Search, ShoppingBag, Trash2, X } from "lucide-react";
 import { buttonClass } from "@/components/ui";
 import { rupiah } from "@/lib/format";
 import { computeTotals, suggestTendered, type Method } from "@/lib/pos-math";
@@ -47,12 +47,62 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
   const [picking, setPicking] = useState<PosProduct | null>(null);
   const [method, setMethod] = useState<Method>("cash");
   const [tendered, setTendered] = useState(0);
+  const [split, setSplit] = useState(false);
+  const [splitRows, setSplitRows] = useState<{ method: Method; amount: number }[]>([]);
+  const [tableLabel, setTableLabel] = useState("");
+  const [held, setHeld] = useState<HeldOrder[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const optionsRef = useRef<HTMLDialogElement>(null);
   const cartRef = useRef<HTMLDialogElement>(null);
   const payRef = useRef<HTMLDialogElement>(null);
+  const heldRef = useRef<HTMLDialogElement>(null);
   const saleId = useRef<string>(crypto.randomUUID());
+  const heldKey = `pos-held:${outlet.id}`;
+
+  // Held orders live on this device only (localStorage); syncing across devices comes with M4 offline.
+  useEffect(() => {
+    try {
+      setHeld(JSON.parse(localStorage.getItem(heldKey) ?? "[]") as HeldOrder[]);
+    } catch {
+      setHeld([]);
+    }
+  }, [heldKey]);
+
+  function storeHeld(next: HeldOrder[]) {
+    setHeld(next);
+    try {
+      localStorage.setItem(heldKey, JSON.stringify(next));
+    } catch {
+      // Storage full or blocked: the list still works for this session.
+    }
+  }
+
+  function resetCart() {
+    setLines([]);
+    setDiscountPct(0);
+    setTableLabel("");
+    setOrderType("takeaway");
+  }
+
+  function holdOrder() {
+    const time = new Intl.DateTimeFormat("id-ID", { timeStyle: "short" }).format(new Date());
+    storeHeld([
+      ...held,
+      { id: crypto.randomUUID(), label: tableLabel.trim() || `Pesanan ${time}`, tableLabel, orderType, discountPct, lines, savedAt: Date.now() },
+    ]);
+    resetCart();
+    cartRef.current?.close();
+  }
+
+  function resumeOrder(order: HeldOrder) {
+    setLines(order.lines);
+    setDiscountPct(order.discountPct);
+    setTableLabel(order.tableLabel);
+    setOrderType(order.orderType);
+    storeHeld(held.filter((h) => h.id !== order.id));
+    heldRef.current?.close();
+  }
 
   const toneOf = useMemo(() => new Map(catalog.categories.map((c, i) => [c.id, TONES[i % TONES.length]])), [catalog.categories]);
   const qtyOf = (productId: string) => lines.filter((l) => l.productId === productId).reduce((s, l) => s + l.qty, 0);
@@ -68,9 +118,11 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
       method: m,
     });
   const preview = totalsFor("transfer"); // before cash rounding
-  const due = totalsFor(method);
+  const due = split ? preview : totalsFor(method);
   const itemCount = lines.reduce((s, l) => s + l.qty, 0);
-  const change = method === "cash" ? tendered - due.total : 0;
+  const change = !split && method === "cash" ? tendered - due.total : 0;
+  const splitLeft = due.total - splitRows.reduce((s, r) => s + r.amount, 0);
+  const canPay = split ? splitLeft === 0 && splitRows.every((r) => r.amount > 0) : method !== "cash" || change >= 0;
 
   function add(product: PosProduct, variantId: string | null = null, modifierIds: string[] = [], qty = 1) {
     const variant = product.variants.find((v) => v.id === variantId);
@@ -104,19 +156,28 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
     cartRef.current?.close();
     setError(null);
     setMethod("cash");
+    setSplit(false);
     setTendered(totalsFor("cash").total);
     payRef.current?.showModal();
   }
 
+  function startSplit() {
+    setSplit(true);
+    setSplitRows([{ method: "cash", amount: 0 }, { method: "qris", amount: preview.total }]);
+  }
+
   function pay() {
     setError(null);
+    const payments = split
+      ? splitRows.map((r) => ({ method: r.method, amount: r.amount, tendered: r.amount }))
+      : [{ method, amount: due.total, tendered: method === "cash" ? tendered : due.total }];
     startTransition(async () => {
       const result = await recordSale({
         id: saleId.current,
         orderType,
-        method,
+        tableLabel: tableLabel.trim() || undefined,
+        payments,
         discountPct,
-        tendered: method === "cash" ? tendered : due.total,
         lines: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, modifierIds: l.modifierIds, qty: l.qty })),
       });
       if (!result.ok) return setError(result.message);
@@ -130,7 +191,10 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
       orderType={orderType}
       setOrderType={setOrderType}
       setQty={setQty}
-      clear={() => { setLines([]); setDiscountPct(0); }}
+      clear={resetCart}
+      tableLabel={tableLabel}
+      setTableLabel={setTableLabel}
+      onHold={holdOrder}
       discountPct={discountPct}
       setDiscountPct={setDiscountPct}
       discountCap={discountCap}
@@ -159,6 +223,15 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
             />
           </label>
           <nav aria-label="Kategori" className="flex gap-2 overflow-x-auto pb-1">
+            {held.length > 0 && (
+              <button
+                type="button"
+                onClick={() => heldRef.current?.showModal()}
+                className="press flex min-h-10 shrink-0 items-center gap-2 rounded-xl bg-tertiary-container px-4 text-sm font-bold text-on-tertiary-container"
+              >
+                <PauseCircle className="size-4" aria-hidden />Tersimpan <span className="num">{held.length}</span>
+              </button>
+            )}
             <Chip active={!category} onClick={() => setCategory("")}>Semua</Chip>
             {catalog.categories.map((c) => (
               <Chip key={c.id} active={category === c.id} onClick={() => setCategory(c.id)}>{c.name}</Chip>
@@ -251,6 +324,64 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
             <CloseButton onClick={() => payRef.current?.close()} />
           </div>
 
+          {split ? (
+            <div className="grid gap-3">
+              {splitRows.map((row, i) => (
+                <div key={i} className="grid grid-cols-[8.5rem_1fr_auto] items-center gap-2">
+                  <select
+                    aria-label={`Metode ${i + 1}`}
+                    value={row.method}
+                    onChange={(e) => setSplitRows((rows) => rows.map((r, j) => (j === i ? { ...r, method: e.target.value as Method } : r)))}
+                    className="min-h-12 rounded-(--radius-field) border border-outline bg-surface-lowest px-3 font-bold"
+                  >
+                    {METHODS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+                  </select>
+                  <span className="relative block">
+                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center font-bold text-on-surface-variant">Rp</span>
+                    <input
+                      aria-label={`Jumlah ${i + 1}`}
+                      inputMode="numeric"
+                      value={row.amount ? new Intl.NumberFormat("id-ID").format(row.amount) : ""}
+                      onChange={(e) => {
+                        const amount = Number(e.target.value.replace(/\D/g, "")) || 0;
+                        setSplitRows((rows) => {
+                          const next = rows.map((r, j) => (j === i ? { ...r, amount } : r));
+                          const last = next.length - 1;
+                          if (i === last) return next;
+                          // Editing an earlier row: the last row takes whatever is left.
+                          const others = next.reduce((s, r, j) => (j === last ? s : s + r.amount), 0);
+                          return next.map((r, j) => (j === last ? { ...r, amount: Math.max(due.total - others, 0) } : r));
+                        });
+                      }}
+                      className="num min-h-12 w-full rounded-(--radius-field) border border-outline bg-surface-lowest pr-3 pl-10 text-lg font-bold focus:border-primary focus:outline-none"
+                    />
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Hapus pembayaran ${i + 1}`}
+                    disabled={splitRows.length <= 2}
+                    onClick={() => setSplitRows((rows) => rows.filter((_, j) => j !== i))}
+                    className="press grid size-11 place-items-center rounded-full hover:bg-surface-container disabled:opacity-30"
+                  >
+                    <X className="size-4" aria-hidden />
+                  </button>
+                </div>
+              ))}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {splitRows.length < 3 && (
+                  <button type="button" onClick={() => setSplitRows((rows) => [...rows, { method: "transfer", amount: Math.max(splitLeft, 0) }])} className="press min-h-10 rounded-full px-3 text-sm font-bold text-primary hover:bg-primary/8">
+                    + Metode lain
+                  </button>
+                )}
+                <p className={`num ml-auto rounded-xl px-3 py-2 text-sm font-extrabold ${splitLeft === 0 ? "bg-tertiary-container text-on-tertiary-container" : "bg-error-container text-on-error-container"}`}>
+                  {splitLeft === 0 ? "Pas" : splitLeft > 0 ? `Sisa ${rupiah(splitLeft)}` : `Lebih ${rupiah(-splitLeft)}`}
+                </p>
+              </div>
+              <p className="text-xs text-on-surface-variant">Bagian tunai dibayar pas; pembulatan tunai tidak berlaku saat dibagi.</p>
+              <button type="button" onClick={() => setSplit(false)} className="press justify-self-start text-sm font-bold text-primary underline">Bayar dengan satu metode</button>
+            </div>
+          ) : (
+          <>
           <div role="radiogroup" aria-label="Metode bayar" className="grid grid-cols-3 gap-1 rounded-full bg-surface-container p-1">
             {METHODS.map((m) => (
               <button
@@ -302,13 +433,16 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
               Pastikan dana {method === "qris" ? "QRIS" : "transfer"} sudah masuk sebelum menekan Selesai. Pencatatan masih manual.
             </p>
           )}
+          <button type="button" onClick={startSplit} className="press justify-self-start text-sm font-bold text-primary underline">Bagi pembayaran (mis. tunai + QRIS)</button>
+          </>
+          )}
 
           {error && <p role="alert" className="rounded-2xl bg-error-container px-4 py-3 text-sm font-semibold text-on-error-container">{error}</p>}
 
           <button
             type="button"
             onClick={pay}
-            disabled={pending || (method === "cash" && change < 0)}
+            disabled={pending || !canPay}
             className={buttonClass("filled", "min-h-14 w-full text-lg")}
           >
             {pending && <LoaderCircle className="size-5 animate-spin" aria-hidden />}
@@ -316,16 +450,60 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
           </button>
         </div>
       </Sheet>
+
+      <Sheet refObj={heldRef} label="Pesanan tersimpan">
+        <div className="grid gap-4 p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-extrabold">Pesanan tersimpan</h2>
+              <p className="text-sm text-on-surface-variant">Hanya di perangkat ini. Lanjutkan untuk membayar.</p>
+            </div>
+            <CloseButton onClick={() => heldRef.current?.close()} />
+          </div>
+          {lines.length > 0 && (
+            <p className="rounded-2xl bg-secondary-container px-4 py-3 text-sm text-on-secondary-container">Keranjang sedang terisi. Simpan atau kosongkan dulu sebelum melanjutkan pesanan lain.</p>
+          )}
+          <ul className="grid">
+            {held.map((h) => {
+              const count = h.lines.reduce((s, l) => s + l.qty, 0);
+              const sum = h.lines.reduce((s, l) => s + l.unitPrice * l.qty, 0);
+              return (
+                <li key={h.id} className="flex min-h-16 items-center gap-3 border-b border-outline-variant/60 last:border-0">
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-bold">{h.label}</span>
+                    <span className="num block text-sm text-on-surface-variant">
+                      {count} item · {rupiah(sum)} · {new Intl.DateTimeFormat("id-ID", { timeStyle: "short" }).format(new Date(h.savedAt))}
+                    </span>
+                  </span>
+                  <button type="button" aria-label={`Hapus ${h.label}`} onClick={() => storeHeld(held.filter((x) => x.id !== h.id))} className="press grid size-11 place-items-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-on-error-container">
+                    <Trash2 className="size-4" aria-hidden />
+                  </button>
+                  <button type="button" disabled={lines.length > 0} onClick={() => resumeOrder(h)} className={buttonClass("tonal", "min-h-11 px-4")}>
+                    Lanjutkan
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </Sheet>
     </div>
   );
 }
 
-function CartPanel({ lines, orderType, setOrderType, setQty, clear, discountPct, setDiscountPct, discountCap, totals, outlet, onPay }: {
+type HeldOrder = {
+  id: string; label: string; tableLabel: string; orderType: "takeaway" | "dine_in"; discountPct: number; lines: Line[]; savedAt: number;
+};
+
+function CartPanel({ lines, orderType, setOrderType, setQty, clear, tableLabel, setTableLabel, onHold, discountPct, setDiscountPct, discountCap, totals, outlet, onPay }: {
   lines: Line[];
   orderType: "takeaway" | "dine_in";
   setOrderType: (t: "takeaway" | "dine_in") => void;
   setQty: (key: string, qty: number) => void;
   clear: () => void;
+  tableLabel: string;
+  setTableLabel: (v: string) => void;
+  onHold: () => void;
   discountPct: number;
   setDiscountPct: (pct: number) => void;
   discountCap: number | null;
@@ -351,11 +529,26 @@ function CartPanel({ lines, orderType, setOrderType, setQty, clear, discountPct,
           ))}
         </div>
         {lines.length > 0 && (
-          <button type="button" onClick={clear} aria-label="Kosongkan keranjang" className="press grid size-11 place-items-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-on-error-container">
-            <Trash2 className="size-5" aria-hidden />
-          </button>
+          <>
+            <button type="button" onClick={onHold} aria-label="Simpan pesanan untuk nanti" title="Simpan untuk nanti" className="press grid size-11 place-items-center rounded-full text-on-surface-variant hover:bg-tertiary-container hover:text-on-tertiary-container">
+              <PauseCircle className="size-5" aria-hidden />
+            </button>
+            <button type="button" onClick={clear} aria-label="Kosongkan keranjang" className="press grid size-11 place-items-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-on-error-container">
+              <Trash2 className="size-5" aria-hidden />
+            </button>
+          </>
         )}
       </div>
+      <label className="mx-4 mb-1 block">
+        <span className="sr-only">Meja atau nama pelanggan</span>
+        <input
+          value={tableLabel}
+          onChange={(e) => setTableLabel(e.target.value)}
+          maxLength={40}
+          placeholder={orderType === "dine_in" ? "Meja, mis. 5" : "Nama pelanggan (opsional)"}
+          className="min-h-11 w-full rounded-(--radius-field) border border-outline-variant bg-surface-lowest px-3 text-sm focus:border-primary focus:outline-none"
+        />
+      </label>
 
       <ul className="min-h-0 flex-1 overflow-y-auto px-4">
         {lines.length === 0 && <li className="py-12 text-center text-sm text-on-surface-variant">Ketuk menu untuk menambahkan.</li>}

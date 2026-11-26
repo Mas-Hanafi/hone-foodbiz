@@ -8,7 +8,7 @@ import { PrintButton } from "./print-button";
 export const metadata = { title: "Struk" };
 
 type Sale = {
-  id: string; outlet_id: string; receipt_no: string; order_type: string; subtotal: string; discount_total: string; service_rate: string; service_total: string;
+  id: string; outlet_id: string; receipt_no: string; order_type: string; table_label: string | null; subtotal: string; discount_total: string; service_rate: string; service_total: string;
   tax_rate: string; tax_inclusive: boolean; tax_total: string; rounding: string; total: string; cashier_id: string; created_at: string; status: string;
 };
 type Item = { product_name: string; variant_name: string | null; modifiers: { name: string; price: number }[]; qty: string; unit_price: string; line_total: string };
@@ -82,7 +82,7 @@ export default async function StrukPage({ params, searchParams }: PageProps<"/ka
         </header>
         <Hr />
         <p>{s.receipt_no}</p>
-        <p>{when} · {(cashier?.display_name as string | undefined) ?? "Kasir"} · {s.order_type === "dine_in" ? "Makan di sini" : "Bungkus"}</p>
+        <p>{when} · {(cashier?.display_name as string | undefined) ?? "Kasir"} · {s.order_type === "dine_in" ? "Makan di sini" : "Bungkus"}{s.table_label ? ` · ${s.table_label}` : ""}</p>
         <Hr />
         {lines.map((l, i) => (
           <div key={i} className="mb-1">
