@@ -95,13 +95,15 @@ Matches the other H One repos.
 
 ## 9. Acceptance criteria (MVP done)
 
+Evidence for the ticked items: [docs/acceptance](acceptance/README.md).
+
 - [ ] Cash sale of 3 items takes ≤ 15 s and ≤ 6 taps on a mid-range Android phone.
 - [x] Kill network, make 20 cash sales, restore network: 20 sales on server, 0 duplicates. (Tested with the cashier screen open, plus one sale whose reply was lost after the server saved it.)
-- [ ] Change a product price; reprinting an old receipt still shows the old price.
-- [ ] Two concurrent sales on the same outlet never get the same receipt number.
-- [ ] Cashier at Outlet A gets zero rows when querying Outlet B directly through the Supabase API.
-- [ ] Shift close shows counted vs expected cash, and the difference is stored.
-- [ ] Receipt PDF renders correctly at 58 mm, 80 mm, and A4.
+- [x] Change a product price; reprinting an old receipt still shows the old price. (Kopi Susu changed 15.000 → 18.000 in the catalog form; the 24 Nov receipt still read "2 x 15.000".)
+- [x] Two concurrent sales on the same outlet never get the same receipt number. (Five devices on one terminal paid at the same moment: receipts 0015–0019, no duplicates anywhere in the database.)
+- [x] Cashier at Outlet A gets zero rows when querying Outlet B directly through the Supabase API. (supabase-js with the publishable key: 0 rows from 12 tables and views, writes and record_sale refused with 42501.)
+- [x] Shift close shows counted vs expected cash, and the difference is stored. (Closed with Rp100.000 counted: screen showed expected Rp847.000 and a Rp747.000 shortfall; both stored.)
+- [x] Receipt PDF renders correctly at 58 mm, 80 mm, and A4. (One page each at 58.3 / 80.1 / 210 × 297 mm, nothing clipped, no buttons in print.)
 - [ ] Fresh clone → deploy → seeded demo login in ≤ 15 minutes following the README.
 
 ## 10. Milestones
