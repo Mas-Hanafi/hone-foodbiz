@@ -1,14 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { LoaderCircle, Minus, PauseCircle, Plus, Search, ShoppingBag, Trash2, X } from "lucide-react";
+import { CloudOff, LoaderCircle, Minus, PauseCircle, Plus, Search, ShoppingBag, Trash2, X } from "lucide-react";
 import { buttonClass } from "@/components/ui";
 import { rupiah } from "@/lib/format";
 import { computeTotals, suggestTendered, type Method } from "@/lib/pos-math";
 import type { PosCatalog, PosOutlet, PosProduct } from "@/lib/pos-data";
 import { messageText } from "@/lib/messages";
-import { recordSale } from "./actions";
+import { flushQueue, readQueue, writeQueue, type QueuedSale, type SendOutcome } from "@/lib/sale-queue";
+import { recordSale, type SaleInput } from "./actions";
+
+const SYNC_EVERY_MS = 30_000;
+
+async function sendSale(input: SaleInput): Promise<SendOutcome> {
+  try {
+    const result = await recordSale(input);
+    return result.ok ? { ok: true } : { ok: false, message: result.message };
+  } catch {
+    return "offline"; // the request never got an answer
+  }
+}
 
 type Line = {
   key: string;
@@ -35,8 +47,8 @@ const METHODS: { id: Method; label: string }[] = [
 const lineKey = (productId: string, variantId: string | null, modifierIds: string[]) =>
   [productId, variantId ?? "", [...modifierIds].sort().join(",")].join("|");
 
-export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
-  catalog: PosCatalog; outlet: PosOutlet; discountCap: number | null; initialMessage?: string;
+export function PosScreen({ terminalId, catalog, outlet, discountCap, initialMessage }: {
+  terminalId: string; catalog: PosCatalog; outlet: PosOutlet; discountCap: number | null; initialMessage?: string;
 }) {
   const router = useRouter();
   const [lines, setLines] = useState<Line[]>([]);
@@ -59,8 +71,47 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
   const heldRef = useRef<HTMLDialogElement>(null);
   const saleId = useRef<string>(crypto.randomUUID());
   const heldKey = `pos-held:${outlet.id}`;
+  const queueRef = useRef<HTMLDialogElement>(null);
+  const [queue, setQueue] = useState<QueuedSale<SaleInput>[]>([]);
+  const [syncing, setSyncing] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const pendingRef = useRef<QueuedSale<SaleInput>[]>([]);
+  const syncingRef = useRef(false);
 
-  // Held orders live on this device only (localStorage); syncing across devices comes with M4 offline.
+  const storeQueue = useCallback((next: QueuedSale<SaleInput>[]) => {
+    pendingRef.current = next;
+    setQueue(next);
+    return writeQueue(terminalId, next);
+  }, [terminalId]);
+
+  const sync = useCallback(async () => {
+    if (syncingRef.current || !pendingRef.current.some((q) => !q.error)) return;
+    syncingRef.current = true;
+    setSyncing(true);
+    const snapshot = pendingRef.current;
+    const { queue: rest, sent } = await flushQueue(snapshot, sendSale);
+    // Sales queued while this run was busy are kept after the ones it already handled.
+    const added = pendingRef.current.filter((q) => !snapshot.some((s) => s.input.id === q.input.id));
+    storeQueue([...rest, ...added]);
+    syncingRef.current = false;
+    setSyncing(false);
+    if (sent) setNotice(`${sent} transaksi offline sudah terkirim.`);
+  }, [storeQueue]);
+
+  useEffect(() => {
+    pendingRef.current = readQueue<SaleInput>(terminalId);
+    setQueue(pendingRef.current);
+    void sync();
+    const onOnline = () => void sync();
+    window.addEventListener("online", onOnline);
+    const timer = setInterval(() => void sync(), SYNC_EVERY_MS);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      clearInterval(timer);
+    };
+  }, [terminalId, sync]);
+
+  // ponytail: held orders live on this device only (localStorage); a shared table board needs a server table.
   useEffect(() => {
     try {
       setHeld(JSON.parse(localStorage.getItem(heldKey) ?? "[]") as HeldOrder[]);
@@ -171,17 +222,31 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
     const payments = split
       ? splitRows.map((r) => ({ method: r.method, amount: r.amount, tendered: r.amount }))
       : [{ method, amount: due.total, tendered: method === "cash" ? tendered : due.total }];
+    const input: SaleInput = {
+      id: saleId.current,
+      orderType,
+      tableLabel: tableLabel.trim() || undefined,
+      payments,
+      discountPct,
+      createdAt: new Date().toISOString(),
+      lines: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, modifierIds: l.modifierIds, qty: l.qty })),
+    };
+    const changeDue = change;
+    const totalDue = due.total;
     startTransition(async () => {
-      const result = await recordSale({
-        id: saleId.current,
-        orderType,
-        tableLabel: tableLabel.trim() || undefined,
-        payments,
-        discountPct,
-        lines: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, modifierIds: l.modifierIds, qty: l.qty })),
-      });
-      if (!result.ok) return setError(result.message);
-      router.push(`/kasir/struk/${result.id}?baru=1`);
+      const outcome = await sendSale(input);
+      if (outcome === "offline") {
+        // No answer from the server: keep the sale on this device and finish it here.
+        const saved = storeQueue([...pendingRef.current, { input, total: totalDue, queuedAt: Date.now() }]);
+        if (!saved) return setError("Tidak ada koneksi dan memori perangkat penuh. Transaksi belum tersimpan.");
+        saleId.current = crypto.randomUUID();
+        resetCart();
+        payRef.current?.close();
+        setNotice(`Offline: ${rupiah(totalDue)} disimpan di perangkat dan dikirim otomatis saat online.${changeDue > 0 ? ` Kembalian ${rupiah(changeDue)}.` : ""}`);
+        return;
+      }
+      if (!outcome.ok) return setError(outcome.message);
+      router.push(`/kasir/struk/${input.id}?baru=1`);
     });
   }
 
@@ -208,7 +273,10 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
     <div className="grid min-h-0 flex-1 lg:grid-cols-[1fr_24rem]">
       <section className="flex min-h-0 flex-col">
         <div className="grid gap-3 px-3 pt-3 sm:px-5 sm:pt-4">
-          {initialMessage && messageText(initialMessage) && (
+          {notice && (
+            <p role="status" className="rounded-2xl bg-tertiary-container px-4 py-3 text-sm font-semibold text-on-tertiary-container">{notice}</p>
+          )}
+          {!notice && initialMessage && messageText(initialMessage) && (
             <p role="status" className="rounded-2xl bg-tertiary-container px-4 py-3 text-sm font-semibold text-on-tertiary-container">{messageText(initialMessage)}</p>
           )}
           <label className="relative block">
@@ -223,6 +291,16 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
             />
           </label>
           <nav aria-label="Kategori" className="flex gap-2 overflow-x-auto pb-1">
+            {queue.length > 0 && (
+              <button
+                type="button"
+                onClick={() => queueRef.current?.showModal()}
+                className={`press flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-bold ${queue.some((q) => q.error) ? "bg-error-container text-on-error-container" : "bg-secondary-container text-on-secondary-container"}`}
+              >
+                {syncing ? <LoaderCircle className="size-4 animate-spin" aria-hidden /> : <CloudOff className="size-4" aria-hidden />}
+                Belum terkirim <span className="num">{queue.length}</span>
+              </button>
+            )}
             {held.length > 0 && (
               <button
                 type="button"
@@ -447,6 +525,40 @@ export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
           >
             {pending && <LoaderCircle className="size-5 animate-spin" aria-hidden />}
             Selesai
+          </button>
+        </div>
+      </Sheet>
+
+      <Sheet refObj={queueRef} label="Transaksi belum terkirim">
+        <div className="grid gap-4 p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-extrabold">Belum terkirim</h2>
+              <p className="text-sm text-on-surface-variant">Sudah dibayar dan tersimpan di perangkat ini. Dikirim otomatis saat koneksi kembali; jangan hapus data browser.</p>
+            </div>
+            <CloseButton onClick={() => queueRef.current?.close()} />
+          </div>
+          <ul className="grid">
+            {queue.map((q) => (
+              <li key={q.input.id} className="flex min-h-16 items-center gap-3 border-b border-outline-variant/60 last:border-0">
+                <span className="min-w-0 flex-1">
+                  <span className="num block font-bold">{rupiah(q.total)} · {new Intl.DateTimeFormat("id-ID", { timeStyle: "short" }).format(new Date(q.queuedAt))}</span>
+                  <span className={`block text-sm ${q.error ? "text-error" : "text-on-surface-variant"}`}>{q.error ?? "Menunggu koneksi"}</span>
+                </span>
+                {q.error && (
+                  <button
+                    type="button"
+                    onClick={() => { if (confirm("Hapus transaksi ini dari antrean? Catat manual bila uang sudah diterima.")) storeQueue(queue.filter((x) => x.input.id !== q.input.id)); }}
+                    className={buttonClass("outlined", "min-h-11 px-4")}
+                  >
+                    Hapus
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <button type="button" disabled={syncing} onClick={() => void sync()} className={buttonClass("tonal", "w-full")}>
+            {syncing ? "Mengirim..." : "Kirim sekarang"}
           </button>
         </div>
       </Sheet>

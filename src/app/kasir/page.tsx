@@ -96,6 +96,7 @@ export default async function KasirPage({ searchParams }: PageProps<"/kasir">) {
         <Link href="/kasir/shift" className="press rounded-full border border-outline px-4 py-2 text-sm font-bold text-primary hover:bg-primary/8">Shift</Link>
       </header>
       <PosScreen
+        terminalId={pos.terminal.id}
         catalog={catalog}
         outlet={pos.outlet}
         discountCap={ctx.role === "cashier" ? pos.outlet.max_cashier_discount_pct : null}

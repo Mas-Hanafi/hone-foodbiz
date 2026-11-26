@@ -48,7 +48,7 @@ Roles are scoped per outlet. A cashier at Outlet A cannot see Outlet B.
 | Receipts | PDF 58 mm / 80 mm / A4 invoice, browser print, share link / download. Content snapshotted at sale time |
 | Void / refund | Void before shift close, refund after. Both need manager PIN and reason. Never hard-delete |
 | Reports | Daily/period sales, by product, by payment method, by cashier, shift recap, expenses, gross profit when cost price exists. Export CSV + PDF |
-| Offline | PWA. Catalog cached. Cash sales queued in IndexedDB with client UUID, synced idempotently. Sync status visible |
+| Offline | Sales that cannot reach the server are queued on the device (localStorage) with a client UUID and synced idempotently; queue status visible on the cashier screen; shift close blocked while the queue is not empty. Later: service worker so the cashier screen also opens while offline |
 | Demo | Seed script for Dapur Senja: 2 outlets, 3 staff, ~40 menu items, 30 days of sales |
 
 ### P1
@@ -88,15 +88,15 @@ Matches the other H One repos.
 |---|---|
 | App | Next.js 16 (App Router), TypeScript, Tailwind v4 |
 | Data / auth | Supabase: Postgres, RLS, Auth, Storage (logos, expense photos) |
-| Offline | Service worker + IndexedDB |
-| PDF | jsPDF (already used in hone-monitoring-app) |
+| Offline | localStorage queue (service worker later) |
+| Receipts | Browser print with 58 mm / 80 mm / A4 print CSS |
 | Tests | Vitest (money math, receipt numbering, sync idempotency, RLS) + Playwright for the checkout flow |
 | Deploy | Vercel + Supabase, one-click deploy button in README |
 
 ## 9. Acceptance criteria (MVP done)
 
 - [ ] Cash sale of 3 items takes ≤ 15 s and ≤ 6 taps on a mid-range Android phone.
-- [ ] Kill network, make 20 cash sales, restore network: 20 sales on server, 0 duplicates.
+- [x] Kill network, make 20 cash sales, restore network: 20 sales on server, 0 duplicates. (Tested with the cashier screen open, plus one sale whose reply was lost after the server saved it.)
 - [ ] Change a product price; reprinting an old receipt still shows the old price.
 - [ ] Two concurrent sales on the same outlet never get the same receipt number.
 - [ ] Cashier at Outlet A gets zero rows when querying Outlet B directly through the Supabase API.
@@ -112,7 +112,7 @@ Matches the other H One repos.
 | M1 | Auth, outlets, staff, catalog ✅ (live-tested; staff creation pending service-role key). Deferred: product photos, per-outlet price UI, CSV import |
 | M2 | POS, payments, receipts, shifts. **M2a ✅** (live-tested): terminal per device, open/close shift with server-computed expected cash, POS with variants and add-ons, cash/QRIS/transfer (manual), server-side price and total recompute, printable receipt 58/80 mm/A4. **M2b ✅** (live-tested): transaction history with daily filter, void/refund approved by manager PIN (list_approvers RPC), approval PIN on the account page, cash in/out per shift, order discount with server-enforced cashier cap. **M2c ✅** (live-tested): split payment up to 3 methods (server-validated, no cash rounding when split), hold order on the device with a table or customer label that is saved on the sale |
 | M3 | Expenses, stock ledger, reports. **M3 ✅** (live-tested): expenses per month with "paid from drawer" tied to this device's open shift (counted in expected cash), stock balance per outlet with restock and opname (difference recorded as adjustment), owner/manager report for a date range: net revenue after refunds, gross profit from costed items, expenses, daily bar chart with table view, payment-method split, top 10 menu items, CSV export of sales |
-| M4 | Offline queue + sync, demo seed, README with screenshots, deploy button |
+| M4 | Offline queue + sync, demo seed, README with screenshots, deploy button. **M4 ✅** (live-tested): device queue with idempotent sync and shift-close guard, `supabase/seed.sql` demo (14 days through the real RPCs), README screenshots, Vercel deploy button. Deferred: service worker for opening the cashier screen while already offline |
 
 ## 11. Open questions
 

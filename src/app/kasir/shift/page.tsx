@@ -5,6 +5,7 @@ import { rupiah } from "@/lib/format";
 import { loadOpenShift, loadTerminal, terminalFromCookie } from "@/lib/pos-data";
 import { getContext } from "@/lib/session";
 import { closeShift, moveCash } from "../actions";
+import { QueueGate } from "./queue-gate";
 
 export const metadata = { title: "Tutup shift" };
 
@@ -97,11 +98,13 @@ export default async function ShiftPage({ searchParams }: PageProps<"/kasir/shif
           <p className="mt-4 text-sm opacity-85">Angka &quot;seharusnya di laci&quot; dihitung server saat shift ditutup, termasuk refund, kas keluar, dan pengeluaran dari laci.</p>
         </Card>
         <Card>
-          <form action={closeShift} className="grid gap-4">
-            <input type="hidden" name="shift_id" value={shift.id} />
-            <Field label="Uang tunai yang dihitung di laci" name="counted" prefix="Rp" inputMode="numeric" required autoFocus />
-            <Submit className="w-full">Tutup shift</Submit>
-          </form>
+          <QueueGate terminalId={pos.terminal.id}>
+            <form action={closeShift} className="grid gap-4">
+              <input type="hidden" name="shift_id" value={shift.id} />
+              <Field label="Uang tunai yang dihitung di laci" name="counted" prefix="Rp" inputMode="numeric" required autoFocus />
+              <Submit className="w-full">Tutup shift</Submit>
+            </form>
+          </QueueGate>
         </Card>
       </div>
 

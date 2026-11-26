@@ -85,6 +85,8 @@ const saleInput = z.object({
     .min(1)
     .max(3),
   discountPct: z.number().min(0).max(100),
+  /** When the sale happened on the device; differs from now when it was queued offline. */
+  createdAt: z.iso.datetime({ offset: true }).optional(),
   lines: z
     .array(
       z.object({
@@ -101,6 +103,16 @@ const saleInput = z.object({
 
 export type SaleInput = z.infer<typeof saleInput>;
 export type SaleResult = { ok: true; id: string } | { ok: false; message: string };
+
+const MAX_QUEUE_AGE_MS = 3 * 86_400_000;
+const MAX_CLOCK_SKEW_MS = 5 * 60_000;
+
+/** The device clock decides the sale time only within sane bounds; otherwise the server clock wins. */
+function saleTime(createdAt: string | undefined): Date {
+  const now = Date.now();
+  const t = createdAt ? Date.parse(createdAt) : NaN;
+  return Number.isFinite(t) && t <= now + MAX_CLOCK_SKEW_MS && t >= now - MAX_QUEUE_AGE_MS ? new Date(Math.min(t, now)) : new Date(now);
+}
 
 /** Prices come from the database, never from the browser; the client only says what and how many. */
 export async function recordSale(raw: SaleInput): Promise<SaleResult> {
@@ -154,7 +166,7 @@ export async function recordSale(raw: SaleInput): Promise<SaleResult> {
   const settled = settlePayments(totals.total, input.payments);
   if (!settled.ok) return { ok: false, message: settled.message };
 
-  const now = new Date();
+  const now = saleTime(input.createdAt);
   const date = businessDate(now, o.timezone);
   const prefix = receiptNo(o.code, pos.terminal.code, date, 0).slice(0, -4);
   const { data: last } = await ctx.supabase
@@ -168,7 +180,7 @@ export async function recordSale(raw: SaleInput): Promise<SaleResult> {
   let seq = last ? Number(String(last.receipt_no).slice(prefix.length)) + 1 : 1;
 
   // ponytail: numbering reads the last receipt then inserts; two devices sharing one terminal code
-  // can collide, so retry a few times. The offline queue (M4) numbers on the device instead.
+  // can collide, so retry a few times. Queued offline sales get their number here, when they sync.
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const { error } = await ctx.supabase.rpc("record_sale", {
       p: {
