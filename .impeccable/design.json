@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-26T00:00:00Z",
+  "title": "Design System: H One FoodBiz",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Warung Orange", "canonical": "#c2410c", "dark": "#ffb59a", "tonalRamp": ["#3b0d00", "#5c1a00", "#8a2e07", "#c2410c", "#e8642f", "#ffb59a", "#ffdbcc", "#fff1eb"] },
+      "on-primary": { "role": "primary", "displayName": "On Warung Orange", "canonical": "#ffffff", "dark": "#5c1a00" },
+      "primary-container": { "role": "primary", "displayName": "Peach Container", "canonical": "#ffdbcc", "dark": "#8a2e07" },
+      "on-primary-container": { "role": "primary", "displayName": "Burnt Ink", "canonical": "#3b0d00", "dark": "#ffdbcc" },
+      "secondary": { "role": "secondary", "displayName": "Turmeric", "canonical": "#7a5900", "dark": "#efc048", "tonalRamp": ["#261a00", "#402d00", "#5c4300", "#7a5900", "#a07800", "#efc048", "#ffdf9e", "#fff3dc"] },
+      "on-secondary": { "role": "secondary", "displayName": "On Turmeric", "canonical": "#ffffff", "dark": "#402d00" },
+      "secondary-container": { "role": "secondary", "displayName": "Turmeric Cream", "canonical": "#ffdf9e", "dark": "#5c4300" },
+      "on-secondary-container": { "role": "secondary", "displayName": "Turmeric Ink", "canonical": "#261a00", "dark": "#ffdf9e" },
+      "tertiary": { "role": "tertiary", "displayName": "Pandan Green", "canonical": "#2e6a3e", "dark": "#95d5a0", "tonalRamp": ["#00210b", "#003916", "#135228", "#2e6a3e", "#4a8a58", "#95d5a0", "#b1f1bb", "#e3fbe5"] },
+      "on-tertiary": { "role": "tertiary", "displayName": "On Pandan", "canonical": "#ffffff", "dark": "#003916" },
+      "tertiary-container": { "role": "tertiary", "displayName": "Pandan Container", "canonical": "#b1f1bb", "dark": "#135228" },
+      "on-tertiary-container": { "role": "tertiary", "displayName": "Pandan Ink", "canonical": "#00210b", "dark": "#b1f1bb" },
+      "error": { "role": "error", "displayName": "Sambal Red", "canonical": "#ba1a1a", "dark": "#ffb4ab", "tonalRamp": ["#410002", "#690005", "#93000a", "#ba1a1a", "#de3730", "#ffb4ab", "#ffdad6", "#fff1ef"] },
+      "on-error": { "role": "error", "displayName": "On Sambal", "canonical": "#ffffff", "dark": "#690005" },
+      "error-container": { "role": "error", "displayName": "Sambal Container", "canonical": "#ffdad6", "dark": "#93000a" },
+      "on-error-container": { "role": "error", "displayName": "Sambal Ink", "canonical": "#410002", "dark": "#ffdad6" },
+      "surface": { "role": "neutral", "displayName": "Peach Paper", "canonical": "#fff8f4", "dark": "#1a120e", "tonalRamp": ["#140d0a", "#231a15", "#332823", "#53443d", "#85736b", "#dcc6bd", "#f2e3db", "#fff8f4"] },
+      "surface-lowest": { "role": "neutral", "displayName": "White Sheet", "canonical": "#ffffff", "dark": "#140d0a" },
+      "surface-low": { "role": "neutral", "displayName": "Warm Tray", "canonical": "#fdf1ea", "dark": "#231a15" },
+      "surface-container": { "role": "neutral", "displayName": "Warm Hover", "canonical": "#f8eae2", "dark": "#281e19" },
+      "surface-high": { "role": "neutral", "displayName": "Warm Hover Deep", "canonical": "#f2e3db", "dark": "#332823" },
+      "on-surface": { "role": "neutral", "displayName": "Roasted Brown", "canonical": "#231a15", "dark": "#f0dfd7" },
+      "on-surface-variant": { "role": "neutral", "displayName": "Clay", "canonical": "#53443d", "dark": "#d8c2b9" },
+      "outline": { "role": "neutral", "displayName": "Outline", "canonical": "#85736b", "dark": "#a08d85" },
+      "outline-variant": { "role": "neutral", "displayName": "Soft Outline", "canonical": "#dcc6bd", "dark": "#53443d" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Dashboard greeting and landing/auth hero line; 2.6rem on phones, 3.75rem from 640px. One per screen." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles; 1.9rem on phones, 2.25rem from 640px." },
+      "title": { "displayName": "Title", "purpose": "Card and section titles." },
+      "body": { "displayName": "Body", "purpose": "Paragraphs and input text; descriptions capped at 65ch." },
+      "label": { "displayName": "Label", "purpose": "Field labels, nav and quick-action labels, buttons (0.95rem)." },
+      "label-small": { "displayName": "Label Small", "purpose": "Status chips, bottom-bar labels, field hints." }
+    },
+    "shadows": [
+      { "name": "card", "value": "0 1px 2px rgb(var(--shadow) / 0.06), 0 4px 14px -6px rgb(var(--shadow) / 0.12)", "purpose": "Resting white surface cards, filled buttons, rail add button. --shadow is 35 26 21 in light, 0 0 0 in dark." },
+      { "name": "raised", "value": "0 2px 4px rgb(var(--shadow) / 0.08), 0 10px 24px -8px rgb(var(--shadow) / 0.22)", "purpose": "Hover on filled buttons and the rail add button; resting on the floating phone add button (The One Loud Add Rule)." }
+    ],
+    "motion": [
+      { "name": "ease-spring", "value": "cubic-bezier(0.34, 1.25, 0.64, 1)", "purpose": "Press release (260ms) and switch thumb (300ms)." },
+      { "name": "ease-out-expo", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Setup progress bar grow-in, 900ms with 150ms delay, once on arrival." },
+      { "name": "press", "value": "transform: scale(0.96) over 90ms on :active; back over 260ms ease-spring", "purpose": "Signature move on every button, card link, list row and chip." },
+      { "name": "reduced-motion", "value": "all transition and animation durations 0ms", "purpose": "prefers-reduced-motion: reduce." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Filled Button",
+      "kind": "button",
+      "refersTo": "button-filled",
+      "description": "Primary action: the one solid orange fill in a section.",
+      "html": "<button class=\"ds-btn ds-btn-filled\">Tambah outlet <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 9999px; border: none; font-family: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: transform 260ms cubic-bezier(0.34, 1.25, 0.64, 1), background-color 160ms ease-out, box-shadow 200ms ease-out; } .ds-btn:active { transform: scale(0.96); transition-duration: 90ms; } .ds-btn:focus-visible { outline: 3px solid var(--primary, #c2410c); outline-offset: 2px; } .ds-btn-filled { background: var(--primary, #c2410c); color: var(--on-primary, #fff); box-shadow: 0 1px 2px rgb(35 26 21 / 0.06), 0 4px 14px -6px rgb(35 26 21 / 0.12); } .ds-btn-filled:hover { box-shadow: 0 2px 4px rgb(35 26 21 / 0.08), 0 10px 24px -8px rgb(35 26 21 / 0.22); }"
+    },
+    {
+      "name": "Tonal Button",
+      "kind": "button",
+      "refersTo": "button-tonal",
+      "description": "Secondary action on turmeric cream.",
+      "html": "<button class=\"ds-btn-tonal\">Simpan draf</button>",
+      "css": ".ds-btn-tonal { display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 9999px; border: none; background: var(--secondary-container, #ffdf9e); color: var(--on-secondary-container, #261a00); font-family: 'Nunito Sans', ui-sans-serif, sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: transform 260ms cubic-bezier(0.34, 1.25, 0.64, 1), filter 160ms ease-out; } .ds-btn-tonal:hover { filter: brightness(0.95); } .ds-btn-tonal:active { transform: scale(0.96); transition-duration: 90ms; } .ds-btn-tonal:focus-visible { outline: 3px solid var(--primary, #c2410c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Outlined Button",
+      "kind": "button",
+      "refersTo": "button-outlined",
+      "description": "Alternative action; primary text on an outline stroke.",
+      "html": "<button class=\"ds-btn-outlined\">Masuk</button>",
+      "css": ".ds-btn-outlined { display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 9999px; border: 1px solid var(--outline, #85736b); background: transparent; color: var(--primary, #c2410c); font-family: 'Nunito Sans', ui-sans-serif, sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: transform 260ms cubic-bezier(0.34, 1.25, 0.64, 1), background-color 160ms ease-out; } .ds-btn-outlined:hover { background: rgb(194 65 12 / 0.08); } .ds-btn-outlined:active { transform: scale(0.96); transition-duration: 90ms; } .ds-btn-outlined:focus-visible { outline: 3px solid var(--primary, #c2410c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action; always outlined, never filled.",
+      "html": "<button class=\"ds-btn-danger\">Hapus menu</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 9999px; border: 1px solid var(--error, #ba1a1a); background: transparent; color: var(--error, #ba1a1a); font-family: 'Nunito Sans', ui-sans-serif, sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: transform 260ms cubic-bezier(0.34, 1.25, 0.64, 1), background-color 160ms ease-out; } .ds-btn-danger:hover { background: rgb(186 26 26 / 0.08); } .ds-btn-danger:active { transform: scale(0.96); transition-duration: 90ms; } .ds-btn-danger:focus-visible { outline: 3px solid var(--primary, #c2410c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Rupiah Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Text field with bold label and fixed Rp prefix; tabular figures.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Harga</span><span class=\"ds-field-wrap\"><span class=\"ds-field-prefix\">Rp</span><input class=\"ds-field-input\" inputmode=\"numeric\" value=\"25000\"></span><span class=\"ds-field-hint\">Tanpa titik atau koma</span></label>",
+      "css": ".ds-field { display: grid; gap: 6px; font-family: 'Nunito Sans', ui-sans-serif, sans-serif; font-size: 0.875rem; color: var(--on-surface, #231a15); max-width: 320px; } .ds-field-label { font-weight: 700; } .ds-field-wrap { position: relative; display: block; } .ds-field-prefix { position: absolute; top: 0; bottom: 0; left: 16px; display: flex; align-items: center; font-weight: 700; color: var(--on-surface-variant, #53443d); pointer-events: none; } .ds-field-input { width: 100%; min-height: 48px; padding: 0 16px 0 44px; border-radius: 14px; border: 1px solid var(--outline, #85736b); background: var(--surface-lowest, #fff); color: var(--on-surface, #231a15); font: inherit; font-size: 1rem; font-variant-numeric: tabular-nums; transition: border-color 150ms, box-shadow 150ms; } .ds-field-input:hover { border-color: var(--on-surface, #231a15); } .ds-field-input:focus { outline: none; border-color: var(--primary, #c2410c); box-shadow: 0 0 0 2px rgb(194 65 12 / 0.3); } .ds-field-hint { font-size: 0.75rem; color: var(--on-surface-variant, #53443d); }"
+    },
+    {
+      "name": "Navigation Bar (phone)",
+      "kind": "nav",
+      "refersTo": "nav-indicator-active",
+      "description": "Bottom bar with pill indicator on the active destination and a raised centre add button.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item is-active\" aria-current=\"page\"><span class=\"ds-nav-ind\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg></span>Beranda</a><a class=\"ds-nav-add\" aria-label=\"Tambah menu\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg></a><a class=\"ds-nav-item\"><span class=\"ds-nav-ind\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7\"/><path d=\"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8\"/><path d=\"M2 7h20\"/></svg></span>Outlet</a></nav>",
+      "css": ".ds-nav { display: flex; align-items: flex-end; justify-content: space-around; gap: 8px; padding: 8px 8px 12px; margin-top: 32px; background: var(--surface-low, #fdf1ea); border-top: 1px solid rgb(220 198 189 / 0.6); font-family: 'Nunito Sans', ui-sans-serif, sans-serif; } .ds-nav-item { display: grid; justify-items: center; gap: 4px; min-width: 64px; font-size: 0.75rem; font-weight: 700; color: var(--on-surface-variant, #53443d); text-decoration: none; cursor: pointer; transition: transform 260ms cubic-bezier(0.34, 1.25, 0.64, 1); } .ds-nav-item:active { transform: scale(0.96); } .ds-nav-ind { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 9999px; transition: background-color 200ms; } .ds-nav-item.is-active { color: var(--on-surface, #231a15); } .ds-nav-item.is-active .ds-nav-ind { background: var(--secondary-container, #ffdf9e); color: var(--on-secondary-container, #261a00); } .ds-nav-item:hover .ds-nav-ind { background: var(--surface-container, #f8eae2); } .ds-nav-item.is-active:hover .ds-nav-ind { background: var(--secondary-container, #ffdf9e); } .ds-nav-item:focus-visible, .ds-nav-add:focus-visible { outline: 3px solid var(--primary, #c2410c); outline-offset: 2px; border-radius: 8px; } .ds-nav-add { display: grid; place-items: center; width: 56px; height: 56px; margin-top: -28px; border-radius: 16px; background: var(--primary, #c2410c); color: var(--on-primary, #fff); box-shadow: 0 2px 4px rgb(35 26 21 / 0.08), 0 10px 24px -8px rgb(35 26 21 / 0.22); cursor: pointer; transition: transform 260ms cubic-bezier(0.34, 1.25, 0.64, 1); } .ds-nav-add:active { transform: scale(0.96); transition-duration: 90ms; }"
+    },
+    {
+      "name": "Status and Filter Chips",
+      "kind": "chip",
+      "refersTo": "chip-status",
+      "description": "Tonal status chip (8px) and checkbox filter chip (12px) that fills primary when selected.",
+      "html": "<div class=\"ds-chips\"><span class=\"ds-chip-status\">Aktif</span><span class=\"ds-chip-status ds-chip-neutral\">Nonaktif</span><label class=\"ds-chip-filter\"><input type=\"checkbox\" checked><span>Makanan</span></label><label class=\"ds-chip-filter\"><input type=\"checkbox\"><span>Minuman</span></label></div>",
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-family: 'Nunito Sans', ui-sans-serif, sans-serif; } .ds-chip-status { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; background: var(--tertiary-container, #b1f1bb); color: var(--on-tertiary-container, #00210b); } .ds-chip-neutral { background: transparent; border: 1px solid var(--outline-variant, #dcc6bd); color: var(--on-surface-variant, #53443d); } .ds-chip-filter { cursor: pointer; transition: transform 260ms cubic-bezier(0.34, 1.25, 0.64, 1); } .ds-chip-filter:active { transform: scale(0.96); } .ds-chip-filter input { position: absolute; opacity: 0; width: 1px; height: 1px; } .ds-chip-filter span { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 12px; border: 1px solid rgb(35 26 21 / 0.4); font-size: 0.875rem; font-weight: 700; color: var(--on-surface, #231a15); } .ds-chip-filter:hover span { background: var(--surface-container, #f8eae2); } .ds-chip-filter input:checked + span { border-color: transparent; background: var(--primary, #c2410c); color: var(--on-primary, #fff); } .ds-chip-filter input:focus-visible + span { outline: 3px solid var(--primary, #c2410c); outline-offset: 2px; }"
+    },
+    {
+      "name": "Outlet Card Link",
+      "kind": "card",
+      "refersTo": "card-primary",
+      "description": "Whole-card link in a rotating container tone with a code tile; flat, no shadow.",
+      "html": "<a class=\"ds-outlet\"><span class=\"ds-outlet-code\">JKT</span><span class=\"ds-outlet-body\"><span class=\"ds-outlet-name\">Dapur Senja Jakarta</span><span class=\"ds-outlet-meta\">2 terminal · Pajak 10%</span></span><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"opacity:.7\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></a>",
+      "css": ".ds-outlet { display: flex; align-items: center; gap: 16px; max-width: 420px; padding: 16px; border-radius: 28px; background: var(--primary-container, #ffdbcc); color: var(--on-primary-container, #3b0d00); text-decoration: none; cursor: pointer; font-family: 'Nunito Sans', ui-sans-serif, sans-serif; transition: transform 260ms cubic-bezier(0.34, 1.25, 0.64, 1); } .ds-outlet:active { transform: scale(0.96); transition-duration: 90ms; } .ds-outlet:hover { filter: brightness(0.98); } .ds-outlet:focus-visible { outline: 3px solid var(--primary, #c2410c); outline-offset: 2px; } .ds-outlet-code { display: grid; place-items: center; width: 48px; height: 48px; flex-shrink: 0; border-radius: 16px; background: rgb(255 255 255 / 0.7); font-family: ui-monospace, monospace; font-size: 0.875rem; font-weight: 700; } .ds-outlet-body { flex: 1; min-width: 0; } .ds-outlet-name { display: block; font-size: 1.125rem; font-weight: 800; } .ds-outlet-meta { display: block; font-size: 0.875rem; opacity: 0.85; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Setup Checklist",
+      "kind": "custom",
+      "refersTo": "card-primary",
+      "description": "Signature: primary-container card; grow-in progress pill, next step directly on the container, hairline-divided pending rows and a collapsed done row.",
+      "html": "<section class=\"ds-setup\"><h2 class=\"ds-setup-title\">Siapkan usaha</h2><div class=\"ds-setup-progress\"><div class=\"ds-setup-track\"><div class=\"ds-setup-fill\" style=\"width:40%\"></div></div><span class=\"ds-setup-count\">2 dari 5</span></div><div class=\"ds-setup-next\"><p class=\"ds-setup-step\">Daftarkan terminal kasir</p><p class=\"ds-setup-detail\">0 terminal</p><button class=\"ds-setup-btn\">Tambah terminal</button></div><div class=\"ds-setup-group\"><div class=\"ds-setup-row\"><span class=\"ds-setup-ring\"></span>Masukkan menu</div></div><div class=\"ds-setup-group\"><div class=\"ds-setup-row\"><span class=\"ds-setup-check\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6 9 17l-5-5\"/></svg></span><span style=\"flex:1\">2 langkah selesai</span><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 9 6 6 6-6\"/></svg></div></div></section>",
+      "css": ".ds-setup { max-width: 440px; padding: 24px; border-radius: 28px; background: var(--primary-container, #ffdbcc); color: var(--on-primary-container, #3b0d00); font-family: 'Nunito Sans', ui-sans-serif, sans-serif; } .ds-setup-title { margin: 0 0 16px; font-family: Nunito, 'Nunito Sans', sans-serif; font-size: 1.25rem; font-weight: 700; } .ds-setup-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; } .ds-setup-track { flex: 1; height: 10px; border-radius: 9999px; overflow: hidden; background: rgb(255 255 255 / 0.7); } .ds-setup-fill { height: 100%; border-radius: 9999px; background: currentColor; opacity: 0.8; transform-origin: left; animation: ds-grow 900ms cubic-bezier(0.16, 1, 0.3, 1) 150ms both; } @keyframes ds-grow { from { transform: scaleX(0); } } .ds-setup-count { font-size: 0.875rem; font-weight: 800; font-variant-numeric: tabular-nums; } .ds-setup-next { padding-bottom: 20px; } .ds-setup-step { margin: 0; font-family: Nunito, 'Nunito Sans', sans-serif; font-size: 1.875rem; line-height: 1.2; font-weight: 800; } .ds-setup-detail { margin: 4px 0 0; opacity: 0.85; } .ds-setup-group { border-top: 1px solid rgb(59 13 0 / 0.15); padding-top: 8px; } .ds-setup-check { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 9999px; background: rgb(59 13 0 / 0.15); } .ds-setup-btn { margin-top: 16px; min-height: 48px; padding: 0 24px; border: none; border-radius: 9999px; background: var(--primary, #c2410c); color: var(--on-primary, #fff); font: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: transform 260ms cubic-bezier(0.34, 1.25, 0.64, 1); } .ds-setup-btn:hover { box-shadow: 0 2px 4px rgb(35 26 21 / 0.08), 0 10px 24px -8px rgb(35 26 21 / 0.22); } .ds-setup-btn:active { transform: scale(0.96); transition-duration: 90ms; } .ds-setup-btn:focus-visible { outline: 3px solid var(--primary, #c2410c); outline-offset: 2px; } .ds-setup-row { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 8px; cursor: pointer; border-radius: 16px; font-weight: 700; } .ds-setup-row:hover { background: rgb(255 255 255 / 0.5); } .ds-setup-ring { width: 24px; height: 24px; border-radius: 9999px; border: 2px solid currentColor; opacity: 0.7; }"
+    },
+    {
+      "name": "Icon Tiles",
+      "kind": "custom",
+      "refersTo": "icon-tile",
+      "description": "Outline icon in a rounded tonal square; the product's only way of showing icons.",
+      "html": "<div class=\"ds-tiles\"><span class=\"ds-tile ds-tile-primary\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg></span><span class=\"ds-tile ds-tile-secondary\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7\"/><path d=\"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8\"/><path d=\"M2 7h20\"/></svg></span><span class=\"ds-tile ds-tile-tertiary\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"3\" width=\"14\" height=\"10\" rx=\"2\"/><rect x=\"16\" y=\"9\" width=\"6\" height=\"12\" rx=\"1\"/></svg></span></div>",
+      "css": ".ds-tiles { display: flex; gap: 12px; } .ds-tile { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 20px; } .ds-tile-primary { background: var(--primary-container, #ffdbcc); color: var(--on-primary-container, #3b0d00); } .ds-tile-secondary { background: var(--secondary-container, #ffdf9e); color: var(--on-secondary-container, #261a00); } .ds-tile-tertiary { background: var(--tertiary-container, #b1f1bb); color: var(--on-tertiary-container, #00210b); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Warung Kitchen in Tonal Colour",
+    "overview": "H One FoodBiz is a warm consumer app wearing Material You, not a grey SaaS admin. The ground is a peach-tinted paper (surface), cards sit on it as white sheets or as soft tonal containers (orange, turmeric, pandan green), and every pressable thing gives under the thumb and springs back. Colour is spread across regions through M3 container roles so the screens feel lively and owned; the most saturated orange is reserved for the things you can press.\n\nDensity is phone-first and generous: 48px minimum targets, 64px list rows, 28px card corners, short rounded humanist type. On wide screens the same cards rearrange into a two-column grid beside a navigation rail; on phones they stack above a bottom bar with a raised centre add button. Light and dark schemes are both first-class, swapped wholesale through the same role names.",
+    "keyCharacteristics": [
+      "M3 tonal roles in three families: warung orange (primary), turmeric (secondary), pandan (tertiary), all on a warm peach neutral.",
+      "Solid primary fill only on pressable elements; regions carry colour through containers.",
+      "Large soft radii (28px cards, pill buttons); nothing interactive has a square corner.",
+      "Nunito 800 headlines over Nunito Sans body, tight leading on big titles.",
+      "Spring press (scale 0.96) on every button, card link, list row and chip.",
+      "Outline icons inside rounded tonal tiles, never bare glyphs."
+    ],
+    "rules": [
+      { "name": "The Pressable Saturation Rule", "body": "Solid primary orange fills only pressable things (filled button, phone add button, selected chip, switch-on) and the focus ring. Regions, cards and tiles get colour through `*-container` roles, never through the primary fill.", "section": "colors" },
+      { "name": "The Pair Rule", "body": "A container background always takes its own `on-*-container` text colour. Contrast is guaranteed by the pair; never mix families (no on-primary-container text on a tertiary container).", "section": "colors" },
+      { "name": "The Three-Container Rotation", "body": "Sibling items that need distinction (outlet cards, quick-action tiles, auth facts) rotate primary, tertiary and secondary containers instead of inventing new hues.", "section": "colors" },
+      { "name": "The Two-Nunito Rule", "body": "h1–h3 and the wordmark use Nunito 800/700; everything else is Nunito Sans. No third family except system mono for machine codes.", "section": "typography" },
+      { "name": "The Tabular Money Rule", "body": "Every number a user compares (rupiah amounts, counts, percentages, progress \"3 dari 5\") uses tabular figures (`.num`); the rupiah field shows a fixed \"Rp\" prefix inside the input.", "section": "typography" },
+      { "name": "No Eyebrows", "body": "Headings stand alone; no uppercase kicker or tracked label above a title.", "section": "typography" },
+      { "name": "The Surface-Only Shadow Rule", "body": "Shadows sit only on white surface cards and on primary actions. A tonal container never gets a shadow; its colour already separates it.", "section": "elevation" },
+      { "name": "The Nothing-Square Rule", "body": "No interactive or container element has a radius under 8px.", "section": "shapes" },
+      { "name": "The One Loud Add Rule", "body": "The add button changes emphasis by breakpoint on purpose. On the rail it is the M3 tonal FAB: primary-container fill, card shadow at rest, raised shadow on hover. The rail sits beside page content that has its own filled buttons, so the add button stays tonal. On the phone bar it is the most prominent action on screen: solid primary fill, raised shadow at rest, lifted 28px above the bar. Keep these two treatments. Don't unify them, and don't give the bar's neighbouring destinations a fill.", "section": "components" }
+    ],
+    "dos": [
+      "Do put colour on regions through `*-container` roles and keep solid primary (#c2410c) for pressable elements and focus.",
+      "Do pair every container with its own `on-*-container` text colour.",
+      "Do give every button, card link, list row and chip the `.press` spring (scale 0.96, `cubic-bezier(0.34, 1.25, 0.64, 1)`), and let `prefers-reduced-motion` zero it.",
+      "Do keep touch targets at 48px or more and list rows at 64px.",
+      "Do use tabular figures and an \"Rp\" prefix for money; format rupiah without decimals.",
+      "Do place icons inside tonal tiles (44px/16px or 56px/20px), outline style.",
+      "Do define every colour through the role variables so the dark scheme swaps cleanly.",
+      "Do separate groups inside a tonal card with hairline dividers in its own ink (on-*-container at 15%), not with nested panels."
+    ],
+    "donts": [
+      "Don't build the grey sidebar-and-table SaaS admin; this is a warm consumer app.",
+      "Don't fill cards, banners or tiles with solid primary orange.",
+      "Don't put shadows on tonal containers.",
+      "Don't add decorative progress rings or uppercase eyebrow labels above headings.",
+      "Don't use emoji or glyph characters as icons.",
+      "Don't introduce a hue outside the orange, turmeric, pandan, error and warm-neutral families.",
+      "Don't use corners under 8px or square buttons.",
+      "Don't nest a white inner panel inside a tonal card to hold its main action."
+    ]
+  }
+}

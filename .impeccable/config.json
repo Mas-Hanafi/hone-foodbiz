@@ -1,0 +1,32 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.34, 1.25, 0.64, 1)",
+        "createdAt": "2026-11-26T03:46:00.468Z",
+        "reason": "Claude: soft press spring is the signature move of the chosen world (warm consumer app, chosen by user on the decision page); release only, no entry bounce"
+      },
+      {
+        "rule": "tiny-text",
+        "value": "*",
+        "files": [
+          "docs/wireframes/pos.html"
+        ],
+        "createdAt": "2026-11-26T03:48:54.114Z",
+        "reason": "Claude: low-fi wireframe document; 10-11px text sits inside scaled device mock frames, not app UI"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "docs/wireframes/pos.html"
+        ],
+        "createdAt": "2026-11-26T03:48:55.151Z",
+        "reason": "Claude: low-fi wireframe document; compact controls inside scaled device mocks, not shipping app UI"
+      }
+    ]
+  }
+}

@@ -1,35 +1,42 @@
-import Link from "next/link";
+import { LogOut } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
+import { AppNav } from "@/components/app-nav";
 import { ROLE_LABEL, getContext } from "@/lib/session";
 
 export default async function AppLayout({ children }: LayoutProps<"/app">) {
   const ctx = await getContext();
-  const nav = [
-    { href: "/app", label: "Beranda" },
-    { href: "/app/catalog", label: "Katalog" },
-    { href: "/app/outlets", label: "Outlet" },
-    ...(ctx.role === "owner" ? [{ href: "/app/staff", label: "Staf" }] : []),
-  ];
+  const initials = ctx.displayName.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <div className="flex flex-1 flex-col">
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-          <Link href="/app" className="font-bold">{ctx.businessName}</Link>
-          <nav className="flex gap-4 text-sm">
-            {nav.map((item) => (
-              <Link key={item.href} href={item.href} className="text-mute hover:text-foreground">{item.label}</Link>
-            ))}
-          </nav>
-          <div className="ml-auto flex items-center gap-3 text-sm">
-            <span className="text-mute">{ctx.displayName} · {ROLE_LABEL[ctx.role]}</span>
-            <form action={signOut}>
-              <button type="submit" className="font-medium underline">Keluar</button>
-            </form>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
+    <div className="flex flex-1">
+      <AppNav showStaff={ctx.role === "owner"} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center gap-3 px-4 pt-4 sm:px-8 sm:pt-6">
+          <span className="min-w-0 flex-1 truncate font-display text-lg font-extrabold">{ctx.businessName}</span>
+          <span className="hidden text-sm text-on-surface-variant sm:block">
+            {ctx.displayName} · {ROLE_LABEL[ctx.role]}
+          </span>
+          <span
+            aria-hidden
+            className="grid size-10 place-items-center rounded-full bg-tertiary-container text-sm font-extrabold text-on-tertiary-container"
+          >
+            {initials}
+          </span>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="press grid size-12 place-items-center rounded-full text-on-surface-variant hover:bg-surface-container"
+              aria-label="Keluar"
+              title="Keluar"
+            >
+              <LogOut className="size-5" aria-hidden />
+            </button>
+          </form>
+        </header>
+        <main id="konten" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-32 sm:px-8 md:pb-12">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

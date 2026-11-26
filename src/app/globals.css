@@ -1,40 +1,181 @@
 @import "tailwindcss";
 
+/* Material You (M3) colour roles. Seed: warung orange; secondary: turmeric; tertiary: pandan. */
 :root {
-  --background: #f6f6f3;
-  --surface: #ffffff;
-  --foreground: #1d1d1b;
-  --mute: #5f5f58;
-  --line: #d6d6cf;
-  --accent: #c23a25;
-  --ok: #276b43;
+  color-scheme: light;
+  --primary: #c2410c;
+  --on-primary: #ffffff;
+  --primary-container: #ffdbcc;
+  --on-primary-container: #3b0d00;
+  --secondary: #7a5900;
+  --on-secondary: #ffffff;
+  --secondary-container: #ffdf9e;
+  --on-secondary-container: #261a00;
+  --tertiary: #2e6a3e;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #b1f1bb;
+  --on-tertiary-container: #00210b;
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #410002;
+  --surface: #fff8f4;
+  --surface-lowest: #ffffff;
+  --surface-low: #fdf1ea;
+  --surface-container: #f8eae2;
+  --surface-high: #f2e3db;
+  --on-surface: #231a15;
+  --on-surface-variant: #53443d;
+  --outline: #85736b;
+  --outline-variant: #dcc6bd;
+  --shadow: 35 26 21;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #121211;
-    --surface: #1c1c1a;
-    --foreground: #ededea;
-    --mute: #a8a8a0;
-    --line: #3a3a35;
-    --accent: #f08a74;
-    --ok: #7fd3a3;
+    color-scheme: dark;
+    --primary: #ffb59a;
+    --on-primary: #5c1a00;
+    --primary-container: #8a2e07;
+    --on-primary-container: #ffdbcc;
+    --secondary: #efc048;
+    --on-secondary: #402d00;
+    --secondary-container: #5c4300;
+    --on-secondary-container: #ffdf9e;
+    --tertiary: #95d5a0;
+    --on-tertiary: #003916;
+    --tertiary-container: #135228;
+    --on-tertiary-container: #b1f1bb;
+    --error: #ffb4ab;
+    --on-error: #690005;
+    --error-container: #93000a;
+    --on-error-container: #ffdad6;
+    --surface: #1a120e;
+    --surface-lowest: #140d0a;
+    --surface-low: #231a15;
+    --surface-container: #281e19;
+    --surface-high: #332823;
+    --on-surface: #f0dfd7;
+    --on-surface-variant: #d8c2b9;
+    --outline: #a08d85;
+    --outline-variant: #53443d;
+    --shadow: 0 0 0;
   }
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
   --color-surface: var(--surface);
-  --color-foreground: var(--foreground);
-  --color-mute: var(--mute);
-  --color-line: var(--line);
-  --color-accent: var(--accent);
-  --color-ok: var(--ok);
-  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --color-surface-lowest: var(--surface-lowest);
+  --color-surface-low: var(--surface-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-high: var(--surface-high);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading), var(--font-body), ui-sans-serif, sans-serif;
+  --radius-card: 1.75rem;
+  --radius-field: 0.875rem;
+  --shadow-card: 0 1px 2px rgb(var(--shadow) / 0.06), 0 4px 14px -6px rgb(var(--shadow) / 0.12);
+  --shadow-raised: 0 2px 4px rgb(var(--shadow) / 0.08), 0 10px 24px -8px rgb(var(--shadow) / 0.22);
+  --ease-spring: cubic-bezier(0.34, 1.25, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--surface);
+  color: var(--on-surface);
   font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  caret-color: var(--primary);
+  scrollbar-color: var(--outline-variant) transparent;
+  touch-action: manipulation;
+}
+
+::selection {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+a {
+  text-underline-offset: 0.2em;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  text-wrap: balance;
+}
+
+/* The signature move: every pressable thing gives under the thumb and springs back. */
+.press {
+  transition:
+    transform 260ms var(--ease-spring),
+    background-color 160ms ease-out,
+    box-shadow 200ms ease-out;
+}
+.press:active {
+  transform: scale(0.96);
+  transition-duration: 90ms;
+}
+
+/* Setup progress fills from the left once, when the page arrives. */
+@keyframes grow-in {
+  from {
+    transform: scaleX(0);
+  }
+}
+.grow-in {
+  transform-origin: left;
+  animation: grow-in 900ms var(--ease-out-expo) 150ms both;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
 }
