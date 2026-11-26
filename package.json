@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
+    "test": "node --test src/lib/pos-math.test.mjs supabase/tests/schema.test.mjs",
     "test:db": "node --test supabase/tests/schema.test.mjs"
   },
   "dependencies": {

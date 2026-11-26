@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, ChevronDown, MonitorSmartphone, Percent, Plus, Store, UserPlus } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, MonitorSmartphone, Percent, Plus, ShoppingCart, Store, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
 import { ButtonLink, Card, IconTile, PageHeader, type Tone } from "@/components/ui";
 import { getContext } from "@/lib/session";
@@ -49,8 +49,12 @@ export default async function DashboardPage() {
       <PageHeader
         size="lg"
         title={`Halo, ${ctx.displayName}`}
-        description={next ? "Beberapa langkah lagi sampai usahamu siap jualan." : "Semua siap. Layar kasir menyusul di rilis berikutnya."}
-      />
+        description={next ? "Beberapa langkah lagi sampai usahamu siap jualan." : "Semua siap. Saatnya jualan."}
+      >
+        <ButtonLink href="/kasir" look={next ? "tonal" : "filled"}>
+          <ShoppingCart className="size-4" aria-hidden />Buka kasir
+        </ButtonLink>
+      </PageHeader>
 
       <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
         <Card tone={next ? "primary" : "tertiary"} title={next ? "Siapkan usaha" : "Usaha siap jalan"} className="self-start">

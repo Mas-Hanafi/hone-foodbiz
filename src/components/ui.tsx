@@ -25,7 +25,7 @@ const LOOK: Record<ButtonLook, string> = {
   danger: "border border-error text-error hover:bg-error/8",
 };
 export const buttonClass = (look: ButtonLook = "filled", extra = "") =>
-  `press inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-[0.95rem] font-bold ` +
+  `press inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-base font-bold ` +
   `disabled:pointer-events-none disabled:opacity-40 ${LOOK[look]} ${extra}`;
 
 export function ButtonLink({ look = "filled", className = "", ...props }: ComponentProps<typeof Link> & { look?: ButtonLook }) {

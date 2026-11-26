@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { supabaseEnv } from "@/lib/supabase/env";
 
-const PROTECTED = ["/app", "/onboarding"];
+const PROTECTED = ["/app", "/kasir", "/onboarding"];
 const GUEST_ONLY = ["/login", "/signup"];
 
 // Refreshes the Supabase session cookie and does optimistic redirects.

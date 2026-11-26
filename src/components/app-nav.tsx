@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Plus, Store, UsersRound, UtensilsCrossed } from "lucide-react";
+import { House, Plus, ShoppingCart, Store, UsersRound, UtensilsCrossed } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type Item = { href: string; label: string; icon: LucideIcon };
@@ -13,14 +13,16 @@ const BASE: Item[] = [
   { href: "/app/outlets", label: "Outlet", icon: Store },
 ];
 const STAFF: Item = { href: "/app/staff", label: "Staf", icon: UsersRound };
+const KASIR: Item = { href: "/kasir", label: "Kasir", icon: ShoppingCart };
 const ADD_HREF = "/app/catalog?tambah=1#tambah-menu";
 
 const isActive = (path: string, href: string) => (href === "/app" ? path === "/app" : path.startsWith(href));
 
-/** M3 navigation rail on wide screens, navigation bar with a centre add button on phones. */
+/** M3 navigation rail on wide screens (add FAB + Kasir item); on phones a bar whose loud centre button opens the cashier. */
 export function AppNav({ showStaff }: { showStaff: boolean }) {
   const path = usePathname();
   const items = showStaff ? [...BASE, STAFF] : BASE;
+  const railItems = [items[0], KASIR, ...items.slice(1)];
 
   return (
     <>
@@ -32,7 +34,7 @@ export function AppNav({ showStaff }: { showStaff: boolean }) {
         >
           <Plus className="size-6" aria-hidden />
         </Link>
-        {items.map((item) => (
+        {railItems.map((item) => (
           <RailLink key={item.href} item={item} active={isActive(path, item.href)} />
         ))}
       </nav>
@@ -45,11 +47,13 @@ export function AppNav({ showStaff }: { showStaff: boolean }) {
           <BarLink key={item.href} item={item} active={isActive(path, item.href)} />
         ))}
         <Link
-          href={ADD_HREF}
-          aria-label="Tambah menu"
-          className="press -mt-7 grid size-14 place-items-center rounded-2xl bg-primary text-on-primary shadow-raised"
+          href={KASIR.href}
+          className="press -mt-7 grid justify-items-center gap-1 text-xs font-bold"
         >
-          <Plus className="size-7" aria-hidden />
+          <span className="grid size-14 place-items-center rounded-2xl bg-primary text-on-primary shadow-raised">
+            <ShoppingCart className="size-7" aria-hidden />
+          </span>
+          Kasir
         </Link>
         {items.slice(2).map((item) => (
           <BarLink key={item.href} item={item} active={isActive(path, item.href)} />

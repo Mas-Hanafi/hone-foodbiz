@@ -188,7 +188,7 @@ components:
 
 H One FoodBiz is a warm consumer app wearing Material You, not a grey SaaS admin. The ground is a peach-tinted paper (surface), cards sit on it as white sheets or as soft tonal containers (orange, turmeric, pandan green), and every pressable thing gives under the thumb and springs back. Colour is spread across regions through M3 container roles so the screens feel lively and owned; the most saturated orange is reserved for the things you can press.
 
-Density is phone-first and generous: 48px minimum targets, 64px list rows, 28px card corners, short rounded humanist type. On wide screens the same cards rearrange into a two-column grid beside a navigation rail; on phones they stack above a bottom bar with a raised centre add button. Light and dark schemes are both first-class, swapped wholesale through the same role names.
+Density is phone-first and generous: 48px minimum targets, 64px list rows, 28px card corners, short rounded humanist type. On wide screens the same cards rearrange into a two-column grid beside a navigation rail; on phones they stack above a bottom bar with a raised centre Kasir button. Light and dark schemes are both first-class, swapped wholesale through the same role names.
 
 **Key Characteristics:**
 - M3 tonal roles in three families: warung orange (primary), turmeric (secondary), pandan (tertiary), all on a warm peach neutral.
@@ -267,7 +267,7 @@ Hybrid: depth comes mostly from tonal layering (peach paper → white sheet → 
 
 ### Shadow Vocabulary
 - **Card** (`box-shadow: 0 1px 2px rgb(35 26 21 / 0.06), 0 4px 14px -6px rgb(35 26 21 / 0.12)`): resting white cards, filled buttons, rail add button.
-- **Raised** (`box-shadow: 0 2px 4px rgb(35 26 21 / 0.08), 0 10px 24px -8px rgb(35 26 21 / 0.22)`): hover state of filled buttons and the rail add button; resting state of the phone add button, which floats 28px above the bar (see The One Loud Add Rule).
+- **Raised** (`box-shadow: 0 2px 4px rgb(35 26 21 / 0.08), 0 10px 24px -8px rgb(35 26 21 / 0.22)`): hover state of filled buttons and the rail add button; resting state of the phone bar's centre Kasir button, which floats 28px above the bar (see The One Loud Centre Rule), and of the Kasir cart bar.
 
 ### Named Rules
 **The Surface-Only Shadow Rule.** Shadows sit only on white surface cards and on primary actions. A tonal container never gets a shadow; its colour already separates it.
@@ -312,7 +312,9 @@ Pill-shaped, bold and springy.
 - **Bar (<768px):** fixed bottom, surface-low with a soft outline-variant top border; two destinations, a 56px primary add button raised 28px, then the rest.
 - **Active state:** a 56×32 secondary-container pill behind the icon, icon stroke 2.4 instead of 2, label in on-surface; inactive is clay. `aria-current="page"` on the active link.
 
-**The One Loud Add Rule.** The add button changes emphasis by breakpoint on purpose. On the rail it is the M3 tonal FAB: primary-container fill, card shadow at rest, raised shadow on hover. The rail sits beside page content that has its own filled buttons, so the add button stays tonal. On the phone bar it is the most prominent action on screen: solid primary fill, raised shadow at rest, lifted 28px above the bar. Keep these two treatments. Don't unify them, and don't give the bar's neighbouring destinations a fill.
+**The One Loud Centre Rule.** Emphasis changes by breakpoint on purpose. On the rail, the top button is the M3 tonal FAB for adding a menu item (primary-container fill, card shadow at rest, raised on hover), and Kasir is an ordinary rail destination. The rail sits beside page content that has its own filled buttons, so nothing on it is solid primary. On the phone bar, the centre button opens Kasir, the most frequent job: solid primary 56px tile with a "Kasir" label, raised shadow at rest, lifted 28px above the bar. Adding a menu item on phones goes through Katalog. Keep these two treatments. Don't unify them, and don't give the bar's neighbouring destinations a fill.
+
+**Kasir surface.** `/kasir` runs outside the admin shell: a slim top bar (back, outlet, terminal, cashier, shift, Tutup shift), the menu grid on the left and the cart panel (surface-low, 24rem) on the right from `lg`; below `lg` the cart becomes a sticky primary bar at the bottom that opens a bottom sheet. Option, cart and payment sheets are native `<dialog>` elements: centred cards on wide screens, bottom sheets on phones. Selected sizes and payment methods use secondary-container; selected add-ons use primary, because they are what the cashier is pressing.
 
 ### Icon Tile (signature)
 Outline icons (lucide, 20px) centred in a rounded square of a container tone: 44px with 16px radius, or 56px with 20px radius for quick actions and empty states. This is how the product shows icons everywhere.

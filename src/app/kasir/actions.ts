@@ -1,0 +1,164 @@
+"use server";
+
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { dbError, done, fail, parse, rupiah } from "@/lib/form";
+import { TERMINAL_COOKIE, loadCatalog, loadOpenShift, loadTerminal, terminalFromCookie } from "@/lib/pos-data";
+import { businessDate, computeTotals, receiptNo } from "@/lib/pos-math";
+import { getContext } from "@/lib/session";
+
+const POS = "/kasir";
+
+export async function chooseTerminal(formData: FormData) {
+  const { terminal_id } = parse(z.object({ terminal_id: z.uuid("noTerminal") }), formData, POS);
+  const ctx = await getContext();
+  if (!(await loadTerminal(ctx, terminal_id))) fail(POS, "noTerminal");
+  (await cookies()).set(TERMINAL_COOKIE, terminal_id, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365 });
+  redirect(POS);
+}
+
+export async function forgetTerminal() {
+  (await cookies()).delete(TERMINAL_COOKIE);
+  redirect(POS);
+}
+
+export async function openShift(formData: FormData) {
+  const { opening_float } = parse(z.object({ opening_float: rupiah }), formData, POS);
+  const ctx = await getContext();
+  const terminalId = await terminalFromCookie();
+  const pos = terminalId ? await loadTerminal(ctx, terminalId) : null;
+  if (!pos) fail(POS, "noTerminal");
+  const { error } = await ctx.supabase.from("shifts").insert({
+    id: crypto.randomUUID(),
+    business_id: ctx.businessId,
+    outlet_id: pos.outlet.id,
+    terminal_id: pos.terminal.id,
+    cashier_id: ctx.userId,
+    opening_float,
+  });
+  if (error) fail(POS, dbError(error));
+  done(POS, "shiftOpened");
+}
+
+export async function closeShift(formData: FormData) {
+  const { shift_id, counted } = parse(z.object({ shift_id: z.uuid("invalid"), counted: rupiah }), formData, `${POS}/shift`);
+  const ctx = await getContext();
+  const { error } = await ctx.supabase.rpc("close_shift", { p_shift_id: shift_id, p_counted: counted });
+  if (error) fail(`${POS}/shift`, dbError(error));
+  redirect(`${POS}/shift?tutup=${shift_id}`);
+}
+
+// ── sale ──
+const saleInput = z.object({
+  id: z.uuid(),
+  orderType: z.enum(["takeaway", "dine_in"]),
+  method: z.enum(["cash", "qris", "transfer"]),
+  tendered: z.number().int().nonnegative(),
+  lines: z
+    .array(
+      z.object({
+        productId: z.uuid(),
+        variantId: z.uuid().nullable(),
+        modifierIds: z.array(z.uuid()).max(20),
+        qty: z.number().int().min(1).max(999),
+        note: z.string().trim().max(120).optional(),
+      }),
+    )
+    .min(1)
+    .max(100),
+});
+
+export type SaleInput = z.infer<typeof saleInput>;
+export type SaleResult = { ok: true; id: string } | { ok: false; message: string };
+
+/** Prices come from the database, never from the browser; the client only says what and how many. */
+export async function recordSale(raw: SaleInput): Promise<SaleResult> {
+  const parsed = saleInput.safeParse(raw);
+  if (!parsed.success) return { ok: false, message: "Data transaksi tidak valid." };
+  const input = parsed.data;
+  const ctx = await getContext();
+  const terminalId = await terminalFromCookie();
+  const pos = terminalId ? await loadTerminal(ctx, terminalId) : null;
+  if (!pos) return { ok: false, message: "Terminal belum dipilih." };
+  const shift = await loadOpenShift(ctx, pos.terminal.id);
+  if (!shift) return { ok: false, message: "Shift belum dibuka." };
+
+  const catalog = await loadCatalog(ctx, pos.outlet.id);
+  const byId = new Map(catalog.products.map((p) => [p.id, p]));
+  const items = [];
+  for (const line of input.lines) {
+    const product = byId.get(line.productId);
+    if (!product) return { ok: false, message: "Ada menu yang sudah tidak aktif. Muat ulang layar kasir." };
+    const variant = line.variantId ? product.variants.find((v) => v.id === line.variantId) : undefined;
+    if (line.variantId && !variant) return { ok: false, message: `Varian ${product.name} sudah berubah. Muat ulang.` };
+    const mods = line.modifierIds.map((id) => product.modifiers.find((m) => m.id === id));
+    if (mods.some((m) => !m)) return { ok: false, message: `Tambahan ${product.name} sudah berubah. Muat ulang.` };
+    const unitPrice = (variant?.price ?? product.price) + mods.reduce((s, m) => s + m!.price, 0);
+    items.push({
+      product_id: product.id,
+      variant_id: variant?.id ?? null,
+      product_name: product.name,
+      variant_name: variant?.name ?? null,
+      modifiers: mods.map((m) => ({ name: m!.name, price: m!.price })),
+      qty: line.qty,
+      unit_price: unitPrice,
+      discount: 0,
+      line_total: unitPrice * line.qty,
+      note: line.note || null,
+    });
+  }
+
+  const o = pos.outlet;
+  const totals = computeTotals({
+    lines: items.map((i) => ({ unitPrice: i.unit_price, qty: i.qty })),
+    serviceRate: o.service_rate, taxRate: o.tax_rate, taxInclusive: o.tax_inclusive, cashRounding: o.cash_rounding,
+    method: input.method,
+  });
+  const tendered = input.method === "cash" ? input.tendered : totals.total;
+  if (tendered < totals.total) return { ok: false, message: "Uang yang diterima kurang dari total." };
+
+  const now = new Date();
+  const date = businessDate(now, o.timezone);
+  const prefix = receiptNo(o.code, pos.terminal.code, date, 0).slice(0, -4);
+  const { data: last } = await ctx.supabase
+    .from("sales")
+    .select("receipt_no")
+    .eq("terminal_id", pos.terminal.id)
+    .eq("business_date", date)
+    .order("receipt_no", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  let seq = last ? Number(String(last.receipt_no).slice(prefix.length)) + 1 : 1;
+
+  // ponytail: numbering reads the last receipt then inserts; two devices sharing one terminal code
+  // can collide, so retry a few times. The offline queue (M4) numbers on the device instead.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { error } = await ctx.supabase.rpc("record_sale", {
+      p: {
+        id: input.id,
+        outlet_id: o.id,
+        terminal_id: pos.terminal.id,
+        shift_id: shift.id,
+        receipt_no: receiptNo(o.code, pos.terminal.code, date, seq),
+        business_date: date,
+        created_at: now.toISOString(),
+        order_type: input.orderType,
+        discount_total: 0,
+        tax_rate: o.tax_rate,
+        tax_inclusive: o.tax_inclusive,
+        tax_total: totals.tax,
+        service_rate: o.service_rate,
+        service_total: totals.service,
+        rounding: totals.rounding,
+        total: totals.total,
+        items,
+        payments: [{ method: input.method, amount: totals.total, tendered }],
+      },
+    });
+    if (!error) return { ok: true, id: input.id };
+    if (error.code !== "23505") return { ok: false, message: "Transaksi gagal disimpan. Coba lagi." };
+    seq += 1;
+  }
+  return { ok: false, message: "Nomor struk bentrok. Coba lagi." };
+}

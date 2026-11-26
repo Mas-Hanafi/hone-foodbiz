@@ -26,6 +26,45 @@
         ],
         "createdAt": "2026-11-26T03:48:55.151Z",
         "reason": "Claude: low-fi wireframe document; compact controls inside scaled device mocks, not shipping app UI"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "2.6rem",
+        "createdAt": "2026-11-26T04:23:43.382Z",
+        "reason": "Claude: phone steps of the documented display (3.75rem) and headline (2.25rem) roles, described in DESIGN.md typography prose"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "1.9rem",
+        "createdAt": "2026-11-26T04:23:44.150Z",
+        "reason": "Claude: phone steps of the documented display (3.75rem) and headline (2.25rem) roles, described in DESIGN.md typography prose"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "11px",
+        "files": [
+          "src/app/kasir/struk/[id]/page.tsx"
+        ],
+        "createdAt": "2026-11-26T04:23:44.646Z",
+        "reason": "Claude: printed thermal/A4 receipt sizes, not screen UI type"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "12px",
+        "files": [
+          "src/app/kasir/struk/[id]/page.tsx"
+        ],
+        "createdAt": "2026-11-26T04:23:45.150Z",
+        "reason": "Claude: printed thermal/A4 receipt sizes, not screen UI type"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "13px",
+        "files": [
+          "src/app/kasir/struk/[id]/page.tsx"
+        ],
+        "createdAt": "2026-11-26T04:23:45.502Z",
+        "reason": "Claude: printed thermal/A4 receipt sizes, not screen UI type"
       }
     ]
   }

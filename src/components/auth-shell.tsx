@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import { ShieldCheck, Store, UtensilsCrossed } from "lucide-react";
+import { ReceiptText, Store, UtensilsCrossed } from "lucide-react";
 
-// Only what the product does today (PRODUCT.md): receipts and offline sales are later milestones.
+// Only what the product does today (PRODUCT.md): offline sales are a later milestone.
 const FACTS = [
   { icon: Store, text: "Satu akun untuk banyak outlet" },
   { icon: UtensilsCrossed, text: "Menu dengan varian dan tambahan" },
-  { icon: ShieldCheck, text: "Data tiap outlet terpisah sesuai peran staf" },
+  { icon: ReceiptText, text: "Kasir dengan struk 58 mm, 80 mm, dan A4" },
 ];
 
 export function AuthShell({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
@@ -35,7 +35,7 @@ export function AuthShell({ title, description, children }: { title: string; des
               </li>
             ))}
           </ul>
-          <p className="mt-6 text-sm opacity-80">Layar kasir, struk, dan mode offline menyusul di rilis berikutnya.</p>
+          <p className="mt-6 text-sm opacity-80">Mode offline, riwayat transaksi, dan void menyusul di rilis berikutnya.</p>
         </div>
         <p className="hidden text-sm opacity-80 lg:block">Open source, lisensi MIT. Data milik usahamu sendiri.</p>
       </section>
