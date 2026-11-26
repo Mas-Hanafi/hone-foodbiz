@@ -13,6 +13,23 @@ import { recordSale, type SaleInput } from "./actions";
 
 const SYNC_EVERY_MS = 30_000;
 
+/** Production only: lets /kasir open offline (public/sw.js). Seeds the caches with what this visit already loaded. */
+async function enableOfflineScreen() {
+  if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
+  try {
+    await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+    const files = performance
+      .getEntriesByType("resource")
+      .map((e) => e.name)
+      .filter((u) => new URL(u).origin === location.origin && new URL(u).pathname.startsWith("/_next/static/"));
+    await (await caches.open("pos-static-v1")).addAll([...new Set(files)]);
+    await (await caches.open("pos-pages-v1")).add("/kasir");
+  } catch {
+    // Offline opening is a bonus; selling online and the sale queue work without it.
+  }
+}
+
 async function sendSale(input: SaleInput): Promise<SendOutcome> {
   try {
     const result = await recordSale(input);
@@ -97,6 +114,10 @@ export function PosScreen({ terminalId, catalog, outlet, discountCap, initialMes
     setSyncing(false);
     if (sent) setNotice(`${sent} transaksi offline sudah terkirim.`);
   }, [storeQueue]);
+
+  useEffect(() => {
+    void enableOfflineScreen();
+  }, []);
 
   useEffect(() => {
     pendingRef.current = readQueue<SaleInput>(terminalId);

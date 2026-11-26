@@ -19,7 +19,7 @@ Screenshots use the demo business from `supabase/seed.sql`. All names and figure
 ## What it does
 
 - **Cashier:** menu grid with variants and add-ons, dine-in or takeaway, order discount (cashier cap enforced on the server), cash with rounding, QRIS, transfer, split payment, held orders, printable receipt.
-- **Offline:** if a sale cannot reach the server it is kept on the device and sent automatically when the connection returns. Sale ids are generated on the device and the database ignores an id it already has, so a retry never creates a duplicate. Closing a shift is blocked while that device still holds unsent sales.
+- **Offline:** the cashier screen opens without a connection once it has been opened online on that device (service worker, production builds). If a sale cannot reach the server it is kept on the device and sent automatically when the connection returns. Sale ids are generated on the device and the database ignores an id it already has, so a retry never creates a duplicate. Closing a shift is blocked while that device still holds unsent sales.
 - **Shifts and cash:** opening float, cash in/out, expenses paid from the drawer, expected vs counted cash computed by the database at close.
 - **Corrections:** void or refund with a manager's 6-digit PIN; sales are never edited or deleted.
 - **Back office:** outlets with tax, service and rounding rules, terminals, staff roles (owner, manager, cashier), catalog, stock ledger with restock and stock opname, expenses, and reports (net revenue, gross profit from cost prices, payment methods, top items, CSV export).
@@ -27,7 +27,7 @@ Screenshots use the demo business from `supabase/seed.sql`. All names and figure
 
 ## Stack
 
-Next.js 16 (App Router, server actions), TypeScript, Tailwind v4, Supabase (Postgres, Row-Level Security, Auth). The offline queue uses the browser's localStorage; receipts use the browser's print dialog.
+Next.js 16 (App Router, server actions), TypeScript, Tailwind v4, Supabase (Postgres, Row-Level Security, Auth). Offline uses a small service worker (`public/sw.js`) and a sale queue in localStorage; receipts use the browser's print dialog.
 
 ## Getting started
 

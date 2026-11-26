@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signIn } from "@/app/auth/actions";
 import { AuthShell } from "@/components/auth-shell";
+import { ForgetOfflinePage } from "./forget-offline-page";
 import { Submit } from "@/components/submit-button";
 import { Field, Notice, flash } from "@/components/ui";
 import { supabaseEnv } from "@/lib/supabase/env";
@@ -11,6 +12,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { error, ok } = await flash(searchParams);
   return (
     <AuthShell title="Masuk" description="Pakai email dan kata sandi akunmu. Staf mendapat akun dari pemilik usaha.">
+      <ForgetOfflinePage />
       {!supabaseEnv() && (
         <p className="mb-5 rounded-2xl bg-secondary-container px-4 py-3 text-sm text-on-secondary-container">
           Supabase belum dikonfigurasi. Salin <code>.env.example</code> ke <code>.env.local</code>, isi URL dan anon key, lalu
