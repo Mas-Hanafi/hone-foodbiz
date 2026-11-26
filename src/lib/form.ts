@@ -24,6 +24,14 @@ export function parse<S extends z.ZodType>(schema: S, formData: FormData, back: 
   return result.data;
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Page to return to on a validation error: `${base}/${id}` when the form carries a valid id, else `base`. */
+export function backTo(formData: FormData, field: string, base: string): string {
+  const value = formData.get(field);
+  return typeof value === "string" && UUID.test(value) ? `${base}/${value}` : base;
+}
+
 export function dbError(error: { code?: string }): MessageKey {
   switch (error.code) {
     case "23505": return "duplicate";

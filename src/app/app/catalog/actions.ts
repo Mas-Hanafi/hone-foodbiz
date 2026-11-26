@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import {
-  checkbox, dbError, done, fail, id, ids, optionalId, optionalRupiah, optionalText, parse, rupiah, text,
+  backTo, checkbox, dbError, done, fail, id, ids, optionalId, optionalRupiah, optionalText, parse, rupiah, text,
 } from "@/lib/form";
 import { getContext } from "@/lib/session";
 
@@ -53,8 +53,8 @@ export async function addProduct(formData: FormData) {
 
 export async function updateProduct(formData: FormData) {
   const ctx = await getContext();
-  const { id: productId, ...values } = parse(z.object({ id, ...productFields, active: checkbox }), formData, CATALOG);
-  const back = productPath(productId);
+  const back = backTo(formData, "id", CATALOG);
+  const { id: productId, ...values } = parse(z.object({ id, ...productFields, active: checkbox }), formData, back);
   const { data, error } = await ctx.supabase.from("products").update(values).eq("id", productId).select("id");
   if (error) fail(back, dbError(error));
   if (!data?.length) fail(back, "forbidden");
@@ -63,8 +63,8 @@ export async function updateProduct(formData: FormData) {
 
 export async function addVariant(formData: FormData) {
   const ctx = await getContext();
-  const input = parse(z.object({ product_id: id, name: text(), price: rupiah }), formData, CATALOG);
-  const back = productPath(input.product_id);
+  const back = backTo(formData, "product_id", CATALOG);
+  const input = parse(z.object({ product_id: id, name: text(), price: rupiah }), formData, back);
   const { error } = await ctx.supabase.from("product_variants").insert({ business_id: ctx.businessId, ...input });
   if (error) fail(back, dbError(error));
   done(back, "created");
@@ -72,8 +72,8 @@ export async function addVariant(formData: FormData) {
 
 export async function deleteVariant(formData: FormData) {
   const ctx = await getContext();
-  const input = parse(z.object({ id, product_id: id }), formData, CATALOG);
-  const back = productPath(input.product_id);
+  const back = backTo(formData, "product_id", CATALOG);
+  const input = parse(z.object({ id, product_id: id }), formData, back);
   const { data, error } = await ctx.supabase.from("product_variants").delete().eq("id", input.id).select("id");
   if (error) fail(back, dbError(error));
   if (!data?.length) fail(back, "forbidden");
@@ -82,8 +82,8 @@ export async function deleteVariant(formData: FormData) {
 
 export async function setProductModifiers(formData: FormData) {
   const ctx = await getContext();
-  const input = parse(z.object({ product_id: id, modifier_ids: ids }), formData, CATALOG);
-  const back = productPath(input.product_id);
+  const back = backTo(formData, "product_id", CATALOG);
+  const input = parse(z.object({ product_id: id, modifier_ids: ids }), formData, back);
   // ponytail: delete + insert is two statements, not one transaction. Worst case a failed insert
   // leaves the product with no modifiers until saved again; move to an RPC if that ever matters.
   const { error: delError } = await ctx.supabase.from("product_modifiers").delete().eq("product_id", input.product_id);

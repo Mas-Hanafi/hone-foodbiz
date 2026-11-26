@@ -154,6 +154,14 @@ test('RLS isolates outlets and businesses', async () => {
   assert.equal((await as(U.ownerB, `select * from public.products`)).length, 0)
   assert.equal((await as(U.ownerA, `select * from public.member_pins`)).length, 0)
   await assert.rejects(as(U.cashier, `select public.check_approver_pin($1,$2,'246810')`, [S.outlet1, U.manager]), /permission/)
+  await assert.rejects(as(U.cashier, `select public.apply_stock_movement()`), /permission/)
+})
+
+test('signed-out callers cannot run any RPC', async () => {
+  const anon = (sql) => db.transaction(async (tx) => { await tx.exec('set local role anon'); return tx.query(sql) })
+  await assert.rejects(anon(`select public.create_business('x','y','ZZ','z')`), /permission/)
+  await assert.rejects(anon(`select public.record_sale('{}'::jsonb)`), /permission/)
+  await assert.rejects(anon(`select public.set_my_pin('123456')`), /permission/)
 })
 
 test('void needs a manager PIN, returns stock, and can only happen once', async () => {

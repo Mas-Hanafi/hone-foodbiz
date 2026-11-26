@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { checkbox, dbError, done, fail, id, optionalText, parse, percent, text } from "@/lib/form";
+import { backTo, checkbox, dbError, done, fail, id, optionalText, parse, percent, text } from "@/lib/form";
 import { getContext } from "@/lib/session";
 
 const outletCode = z.string().trim().toUpperCase().regex(/^[A-Z0-9]{2,8}$/, "outletCode");
@@ -37,8 +37,8 @@ const settings = z.object({
 });
 
 export async function updateOutlet(formData: FormData) {
-  const { id: outletId, ...values } = parse(settings, formData, "/app/outlets");
-  const back = `/app/outlets/${outletId}`;
+  const back = backTo(formData, "id", "/app/outlets");
+  const { id: outletId, ...values } = parse(settings, formData, back);
   const ctx = await getContext();
   // RLS lets only the owner update; an empty result means no access.
   const { data, error } = await ctx.supabase.from("outlets").update(values).eq("id", outletId).select("id");
@@ -54,8 +54,8 @@ const terminal = z.object({
 });
 
 export async function addTerminal(formData: FormData) {
-  const input = parse(terminal, formData, "/app/outlets");
-  const back = `/app/outlets/${input.outlet_id}`;
+  const back = backTo(formData, "outlet_id", "/app/outlets");
+  const input = parse(terminal, formData, back);
   const ctx = await getContext();
   const { error } = await ctx.supabase.from("terminals").insert({ business_id: ctx.businessId, ...input });
   if (error) fail(back, dbError(error));
