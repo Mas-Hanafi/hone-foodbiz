@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
 
   return (
     <div className="flex flex-1">
-      <AppNav showStaff={ctx.role === "owner"} />
+      <AppNav showStaff={ctx.role === "owner"} showReports={ctx.role !== "cashier"} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center gap-3 px-4 pt-4 sm:px-8 sm:pt-6">
           <span className="min-w-0 flex-1 truncate font-display text-lg font-extrabold">{ctx.businessName}</span>

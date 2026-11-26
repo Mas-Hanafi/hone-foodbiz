@@ -3,12 +3,14 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { MessageKey } from "./messages";
 
+const withParam = (path: string, name: string, value: string) => `${path}${path.includes("?") ? "&" : "?"}${name}=${value}`;
+
 export function fail(path: string, key: MessageKey): never {
-  redirect(`${path}?error=${key}`);
+  redirect(withParam(path, "error", key));
 }
 
 export function done(path: string, key: MessageKey): never {
-  redirect(`${path}?ok=${key}`);
+  redirect(withParam(path, "ok", key));
 }
 
 /** Parses FormData with a zod schema whose messages are MessageKeys; redirects back on failure. */

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check, ChevronDown, MonitorSmartphone, Percent, Plus, ShoppingCart, Store, UserPlus } from "lucide-react";
+import { ArrowRight, Boxes, ChartColumn, Check, ChevronDown, MonitorSmartphone, Percent, Plus, ShoppingCart, Store, UserPlus, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { ButtonLink, Card, IconTile, PageHeader, type Tone } from "@/components/ui";
 import { getContext } from "@/lib/session";
@@ -31,6 +31,7 @@ export default async function DashboardPage() {
   const terminals = [...terminalsPer.values()].reduce((a, b) => a + b, 0);
   const configured = outlets.some((o) => Number(o.tax_rate) > 0 || Number(o.service_rate) > 0 || o.receipt_footer);
   const isOwner = ctx.role === "owner";
+  const isCashier = ctx.role === "cashier";
   const firstOutlet = outlets[0]?.id;
 
   const steps: Step[] = [
@@ -130,6 +131,13 @@ export default async function DashboardPage() {
               ) : (
                 <QuickAction href="/app/catalog/modifiers" icon={<Percent className="size-5" />} tone="secondary" label="Tambahan" />
               )}
+              {!isCashier && (
+                <>
+                  <QuickAction href="/app/laporan" icon={<ChartColumn className="size-5" />} tone="primary" label="Laporan" />
+                  <QuickAction href="/app/stok" icon={<Boxes className="size-5" />} tone="tertiary" label="Stok" />
+                </>
+              )}
+              <QuickAction href="/app/pengeluaran" icon={<Wallet className="size-5" />} tone="secondary" label="Biaya" />
             </div>
           </Card>
 

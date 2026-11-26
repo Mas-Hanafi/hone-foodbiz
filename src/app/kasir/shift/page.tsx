@@ -74,6 +74,8 @@ export default async function ShiftPage({ searchParams }: PageProps<"/kasir/shif
     .eq("kind", "refund")
     .eq("method", "cash");
   const cashRefunds = ((refundRows ?? []) as { amount: string }[]).reduce((sum, r) => sum + Number(r.amount), 0);
+  const { data: expenseRows } = await ctx.supabase.from("expenses").select("amount").eq("shift_id", shift.id);
+  const drawerExpenses = ((expenseRows ?? []) as { amount: string }[]).reduce((sum, e) => sum + Number(e.amount), 0);
   const hhmm = (iso: string) => new Intl.DateTimeFormat("id-ID", { timeStyle: "short", timeZone: pos.outlet.timezone }).format(new Date(iso));
 
   return (
@@ -90,8 +92,9 @@ export default async function ShiftPage({ searchParams }: PageProps<"/kasir/shif
             <Pair label="Tunai dari penjualan" value={rupiah(cashIn)} />
             <Pair label="Refund tunai" value={rupiah(-cashRefunds)} />
             <Pair label="Kas masuk/keluar" value={rupiah(movedNet)} />
+            <Pair label="Pengeluaran dari laci" value={rupiah(-drawerExpenses)} />
           </dl>
-          <p className="mt-4 text-sm opacity-85">Angka &quot;seharusnya di laci&quot; dihitung server saat shift ditutup, termasuk refund dan kas keluar.</p>
+          <p className="mt-4 text-sm opacity-85">Angka &quot;seharusnya di laci&quot; dihitung server saat shift ditutup, termasuk refund, kas keluar, dan pengeluaran dari laci.</p>
         </Card>
         <Card>
           <form action={closeShift} className="grid gap-4">

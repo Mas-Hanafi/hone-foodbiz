@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronDown, ChevronRight, Plus, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
+import { Boxes, ChevronDown, ChevronRight, Plus, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
 import { Submit } from "@/components/submit-button";
 import { ButtonLink, Card, EmptyState, Field, Notice, PageHeader, SelectField, StatusChip, Switch, flash } from "@/components/ui";
 import { rupiah } from "@/lib/format";
@@ -40,6 +40,7 @@ export default async function CatalogPage({ searchParams }: PageProps<"/app/cata
     <>
       <PageHeader title="Katalog" description="Menu, harga, dan tambahan yang dipakai kasir.">
         <ButtonLink href="/app/catalog/modifiers" look="tonal"><Sparkles className="size-4" aria-hidden />Kelola tambahan</ButtonLink>
+        <ButtonLink href="/app/stok" look="outlined"><Boxes className="size-4" aria-hidden />Stok</ButtonLink>
       </PageHeader>
       <Notice error={error} ok={ok} />
 

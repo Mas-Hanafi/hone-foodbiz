@@ -111,7 +111,7 @@ Matches the other H One repos.
 | M0 | PRD (this), ERD + SQL migrations with RLS ✅, [POS screen wireframe](wireframes/pos.html) ✅ |
 | M1 | Auth, outlets, staff, catalog ✅ (live-tested; staff creation pending service-role key). Deferred: product photos, per-outlet price UI, CSV import |
 | M2 | POS, payments, receipts, shifts. **M2a ✅** (live-tested): terminal per device, open/close shift with server-computed expected cash, POS with variants and add-ons, cash/QRIS/transfer (manual), server-side price and total recompute, printable receipt 58/80 mm/A4. **M2b ✅** (live-tested): transaction history with daily filter, void/refund approved by manager PIN (list_approvers RPC), approval PIN on the account page, cash in/out per shift, order discount with server-enforced cashier cap. **M2c ✅** (live-tested): split payment up to 3 methods (server-validated, no cash rounding when split), hold order on the device with a table or customer label that is saved on the sale |
-| M3 | Expenses, stock ledger, reports |
+| M3 | Expenses, stock ledger, reports. **M3 ✅** (live-tested): expenses per month with "paid from drawer" tied to this device's open shift (counted in expected cash), stock balance per outlet with restock and opname (difference recorded as adjustment), owner/manager report for a date range: net revenue after refunds, gross profit from costed items, expenses, daily bar chart with table view, payment-method split, top 10 menu items, CSV export of sales |
 | M4 | Offline queue + sync, demo seed, README with screenshots, deploy button |
 
 ## 11. Open questions

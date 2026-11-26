@@ -4,7 +4,7 @@ Open-source point of sale and bookkeeping for small food businesses, from a waru
 
 The demo business ("Dapur Senja") and all data are fictional.
 
-> Status: M0, M1, M2a and M2b done and tested against a live Supabase project: sign-in, onboarding, outlets, staff, catalog, cashier screen with shifts, discounts and printable receipts, transaction history, void/refund with manager PIN, cash in/out. Next: M2c (split payment, hold order) and M3 (expenses, stock, reports). See [docs/PRD.md](docs/PRD.md).
+> Status: M0 to M3 done and tested against a live Supabase project: sign-in, onboarding, outlets, staff, catalog, cashier screen with shifts, discounts, split payment, held orders and printable receipts, transaction history, void/refund with manager PIN, cash in/out, expenses, stock ledger with restock and opname, and sales reports with CSV export. Next: M4 (offline queue, demo seed, deploy). See [docs/PRD.md](docs/PRD.md).
 
 ## Docs
 

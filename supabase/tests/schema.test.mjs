@@ -202,3 +202,19 @@ test('partial cash refund, then close shift with expected cash', async () => {
   assert.equal(e, '235000.00')
   await assert.rejects(as(U.cashier, `select public.close_shift($1, 1)`, [S.shift]), /already closed/)
 })
+
+test('sales report aggregates only what the caller may see', async () => {
+  const report = async (uid) => (await as(uid, `select public.sales_report('2026-11-26', '2026-11-26') as r`))[0].r
+  const before = await report(U.ownerA)
+  assert.equal(before.count, 1) // sale 6; sale 1 was voided
+  assert.equal(before.voided, 1)
+  assert.equal(Number(before.gross), 60500)
+  assert.equal(Number(before.refunds), 5500)
+  await as(U.cashier, `select public.record_sale($1)`, [sale(7)])
+  const after = await report(U.ownerA)
+  assert.equal(after.count, 2)
+  assert.equal(Number(after.cogs), 51000) // per sale: 2 x 12.000 + 1 x 1.500
+  assert.deepEqual(after.top_products.map((p) => p.name), ['Nasi Ayam', 'Es Teh'])
+  assert.deepEqual(after.by_method.map((m) => m.method), ['cash'])
+  assert.equal((await report(U.cashier2)).count, 0) // other outlet: RLS hides JKT sales
+})
