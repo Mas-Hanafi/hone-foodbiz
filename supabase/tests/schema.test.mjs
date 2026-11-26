@@ -19,6 +19,8 @@ const SUPABASE_STUB = `
   create table auth.users (id uuid primary key);
   create function auth.uid() returns uuid language sql stable as
     $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+  create function auth.jwt() returns jsonb language sql stable as
+    $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
   create schema extensions;
   grant usage on schema auth, extensions, public to anon, authenticated;
   grant execute on all functions in schema auth to anon, authenticated;
@@ -40,7 +42,8 @@ const db = new PGlite({ extensions: { pgcrypto } })
 // Run SQL as a signed-in Supabase user (role authenticated + JWT sub), inside its own transaction.
 const as = (uid, sql, params = []) =>
   db.transaction(async (tx) => {
-    await tx.query(`select set_config('request.jwt.claim.sub', $1, true)`, [uid])
+    await tx.query(`select set_config('request.jwt.claim.sub', $1, true),
+      set_config('request.jwt.claims', json_build_object('sub', $1::text, 'email', $1::text || '@test')::text, true)`, [uid])
     await tx.exec('set local role authenticated')
     return (await tx.query(sql, params)).rows
   })
@@ -68,12 +71,14 @@ test('migrations apply on a Supabase-like database', async () => {
 })
 
 test('owner bootstraps a business and staff', async () => {
-  ;[{ b: S.business }] = await as(U.ownerA, `select public.create_business('Dapur Senja','Jakarta','JKT') as b`)
+  ;[{ b: S.business }] = await as(U.ownerA, `select public.create_business('Dapur Senja','Jakarta','jkt','Sari') as b`)
+  const [own] = await as(U.ownerA, `select role, display_name, email from public.memberships`)
+  assert.deepEqual(own, { role: 'owner', display_name: 'Sari', email: `${U.ownerA}@test` })
   ;[{ id: S.outlet1 }] = await as(U.ownerA, `select id from public.outlets where code = 'JKT'`)
   ;[{ id: S.outlet2 }] = await as(U.ownerA,
     `insert into public.outlets (business_id, code, name) values ($1,'YOG','Yogyakarta') returning id`, [S.business])
-  await as(U.ownerA, `insert into public.memberships (business_id, outlet_id, user_id, role) values
-    ($1,$2,$3,'manager'), ($1,$2,$4,'cashier'), ($1,$5,$6,'cashier')`,
+  await as(U.ownerA, `insert into public.memberships (business_id, outlet_id, user_id, role, display_name) values
+    ($1,$2,$3,'manager','Budi'), ($1,$2,$4,'cashier','Rina'), ($1,$5,$6,'cashier','Dewi')`,
     [S.business, S.outlet1, U.manager, U.cashier, S.outlet2, U.cashier2])
   ;[{ id: S.terminal }] = await as(U.manager,
     `insert into public.terminals (business_id, outlet_id, code, name) values ($1,$2,'T1','Kasir 1') returning id`,
@@ -83,6 +88,18 @@ test('owner bootstraps a business and staff', async () => {
   await as(U.manager, `insert into public.stock_movements (business_id, outlet_id, product_id, qty_delta, kind)
     values ($1,$2,$3,10,'restock')`, [S.business, S.outlet1, S.nasi])
   await as(U.manager, `select public.set_my_pin('246810')`)
+})
+
+test('only the owner manages staff', async () => {
+  const promoted = await as(U.manager, `update public.memberships set role = 'owner', outlet_id = null
+    where user_id = $1 returning id`, [U.manager])
+  assert.equal(promoted.length, 0)
+  assert.deepEqual((await as(U.cashier, `select display_name from public.memberships`)).map((r) => r.display_name), ['Rina'])
+  assert.equal((await as(U.manager, `select * from public.memberships`)).length, 2) // self + cashier at JKT
+  const off = await as(U.ownerA, `update public.memberships set active = false where user_id = $1 returning id`, [U.cashier2])
+  assert.equal(off.length, 1)
+  assert.equal((await as(U.cashier2, `select * from public.outlets`)).length, 0) // deactivated = no access
+  await as(U.ownerA, `update public.memberships set active = true where user_id = $1`, [U.cashier2])
 })
 
 test('cashiers cannot edit the catalog or restock', async () => {

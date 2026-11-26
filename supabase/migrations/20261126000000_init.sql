@@ -47,9 +47,11 @@ create table public.memberships (
   id          uuid primary key default gen_random_uuid(),
   business_id uuid not null references public.businesses on delete cascade,
   outlet_id   uuid,
-  user_id     uuid not null references auth.users on delete cascade,
-  role        public.member_role not null,
-  active      boolean not null default true,
+  user_id      uuid not null references auth.users on delete cascade,
+  role         public.member_role not null,
+  display_name text not null check (length(trim(display_name)) > 0),
+  email        text,  -- copy for staff lists; auth.users is not readable by clients
+  active       boolean not null default true,
   created_at  timestamptz not null default now(),
   foreign key (outlet_id, business_id) references public.outlets (id, business_id) on delete cascade,
   check ((role = 'owner') = (outlet_id is null)),
@@ -377,17 +379,18 @@ $$;
 revoke execute on function public.check_approver_pin(uuid, uuid, text) from public, anon, authenticated;
 
 -- ───────────────────────── RPCs ─────────────────────────
-create function public.create_business(p_name text, p_outlet_name text, p_outlet_code text)
+create function public.create_business(
+  p_name text, p_outlet_name text, p_outlet_code text, p_display_name text)
 returns uuid language plpgsql security definer set search_path = '' as $$
 declare
   v_business uuid;
-  v_outlet   uuid;
 begin
   if auth.uid() is null then raise exception 'not signed in' using errcode = '42501'; end if;
   insert into public.businesses (name) values (p_name) returning id into v_business;
   insert into public.outlets (business_id, code, name)
-  values (v_business, upper(p_outlet_code), p_outlet_name) returning id into v_outlet;
-  insert into public.memberships (business_id, user_id, role) values (v_business, auth.uid(), 'owner');
+  values (v_business, upper(p_outlet_code), p_outlet_name);
+  insert into public.memberships (business_id, user_id, role, display_name, email)
+  values (v_business, auth.uid(), 'owner', p_display_name, auth.jwt() ->> 'email');
   return v_business;
 end $$;
 

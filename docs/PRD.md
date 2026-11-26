@@ -109,7 +109,7 @@ Matches the other H One repos.
 | # | Deliverable |
 |---|---|
 | M0 | PRD (this), ERD + SQL migrations with RLS ✅, [POS screen wireframe](wireframes/pos.html) ✅ |
-| M1 | Auth, outlets, staff, catalog |
+| M1 | Auth, outlets, staff, catalog (code done; live Supabase test pending). Deferred: product photos, per-outlet price UI, CSV import |
 | M2 | POS, payments, receipts, shifts |
 | M3 | Expenses, stock ledger, reports |
 | M4 | Offline queue + sync, demo seed, README with screenshots, deploy button |

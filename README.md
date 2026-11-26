@@ -4,7 +4,7 @@ Open-source point of sale and bookkeeping for small food businesses, from a waru
 
 The demo business ("Dapur Senja") and all data are fictional.
 
-> Status: M0 done (planning + database), M1 in progress. See [docs/PRD.md](docs/PRD.md).
+> Status: M0 done (planning + database). M1 code done (sign-up, onboarding, outlets + terminals, staff, catalog with variants and add-ons); not yet tested against a live Supabase project. See [docs/PRD.md](docs/PRD.md).
 
 ## Docs
 
@@ -25,6 +25,14 @@ npm run dev
 ```
 
 Apply the database schema to your Supabase project with the Supabase CLI (`supabase db push`) or by running `supabase/migrations/*.sql` in the SQL editor.
+
+Then:
+
+1. Sign up at `/signup`. The first account creates a business and becomes its owner.
+2. Optional: turn off **Authentication → Email → Confirm email** in Supabase for a demo, so sign-up logs you straight in.
+3. Set `SUPABASE_SERVICE_ROLE_KEY` (server only) to let the owner create staff accounts from **Staf**.
+
+Anyone who can reach `/signup` can create their own isolated business. For a single-business install, disable sign-ups in Supabase after creating the owner.
 
 ## Tests
 
