@@ -1,3 +1,10 @@
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/hone-wordmark-white.svg">
+    <img src="docs/brand/hone-wordmark-black.svg" alt="H'ONE" height="48">
+  </picture>
+</p>
+
 # H One FoodBiz
 
 Open-source point of sale and bookkeeping for small food businesses, from a warung to a restaurant. Ring up orders on a phone or tablet, print receipts (58 mm, 80 mm, A4), track shifts, cash, expenses and stock, read daily reports, and keep selling when the internet drops.

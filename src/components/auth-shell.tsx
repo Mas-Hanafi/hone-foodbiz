@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ReceiptText, Store, UtensilsCrossed } from "lucide-react";
+import { BrandLockup } from "@/components/brand";
 
 // Only what the product does today (PRODUCT.md): offline sales are a later milestone.
 const FACTS = [
@@ -13,7 +14,7 @@ export function AuthShell({ title, description, children }: { title: string; des
     <main className="grid flex-1 grid-rows-[auto_1fr] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:grid-rows-none">
       <section className="flex flex-col justify-between gap-8 bg-primary-container px-6 py-6 text-on-primary-container sm:px-10 lg:min-h-dvh lg:py-12">
         <div>
-          <p className="font-display text-xl font-extrabold">H One FoodBiz</p>
+          <p><BrandLockup /></p>
           <p className="mt-1 text-sm opacity-85 lg:hidden">Kasir dan catatan warung, rapi dari hari pertama.</p>
         </div>
         <div className="hidden lg:block">

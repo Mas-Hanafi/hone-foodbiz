@@ -1,10 +1,11 @@
+import { BrandLockup } from "@/components/brand";
 import { ButtonLink } from "@/components/ui";
 
 export default function Home() {
   return (
     <main className="grid flex-1 place-items-center bg-primary-container px-4 py-16 text-on-primary-container">
       <div className="w-full max-w-2xl">
-        <p className="font-display text-xl font-extrabold">H One FoodBiz</p>
+        <p><BrandLockup /></p>
         <h1 className="mt-6 text-5xl leading-[1.05] font-extrabold tracking-tight sm:text-6xl">
           Kasir dan catatan untuk warung sampai restoran.
         </h1>
