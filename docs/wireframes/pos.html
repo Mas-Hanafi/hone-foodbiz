@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>POS Wireframe</title>
+<style>
+  :root {
+    --bg: #f4f4f2; --paper: #fff; --ink: #1d1d1b; --mute: #5f5f58; --line: #c9c9c2;
+    --fill: #e7e7e2; --accent: #c23a25; --ok: #276b43; --warn: #855610;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1200px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 48px 0 6px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .lede, .note { color: var(--mute); max-width: 72ch; }
+  .note { margin: 4px 0 16px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+
+  /* frames */
+  .frame { background: var(--paper); border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; }
+  .tablet { width: 100%; max-width: 1024px; aspect-ratio: 16 / 10; display: grid; grid-template-rows: 44px 1fr; }
+  .phone { width: 300px; height: 600px; border-radius: 26px; display: grid; grid-template-rows: 40px 1fr auto; position: relative; }
+  .label { font-size: 12px; color: var(--mute); margin: 6px 2px 0; }
+
+  .bar { display: flex; align-items: center; gap: 10px; padding: 0 12px; border-bottom: 1.5px solid var(--line); font-size: 12px; white-space: nowrap; overflow: hidden; }
+  .bar b { font-size: 13px; }
+  .pill { border: 1.5px solid var(--line); border-radius: 99px; padding: 2px 9px; font-size: 11px; }
+  .pill.ok { border-color: var(--ok); color: var(--ok); }
+  .pill.warn { border-color: var(--warn); color: var(--warn); background: #fdf6e8; }
+  .grow { flex: 1; }
+
+  .pos { display: grid; grid-template-columns: 1fr 34%; min-height: 0; }
+  .catalog { display: grid; grid-template-rows: auto auto 1fr; gap: 10px; padding: 12px; min-height: 0; border-right: 1.5px solid var(--line); }
+  .search { border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px; color: var(--mute); font-size: 12px; }
+  .tabs { display: flex; gap: 6px; overflow: hidden; }
+  .tab { border: 1.5px solid var(--line); border-radius: 8px; padding: 5px 10px; font-size: 12px; white-space: nowrap; }
+  .tab.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-content: start; overflow: hidden; }
+  .item { border: 1.5px solid var(--line); border-radius: 8px; padding: 8px; font-size: 11px; position: relative; }
+  .item .img { aspect-ratio: 4/3; background: var(--fill); border-radius: 5px; margin-bottom: 4px;
+    background-image: linear-gradient(to top right, transparent 49%, var(--line) 50%, transparent 51%); }
+  .item b { display: block; font-size: 12px; }
+  .item.out { color: var(--mute); border-style: dashed; }
+  .item.out .img { opacity: .4; }
+  .item .qty { position: absolute; top: 4px; right: 4px; background: var(--ink); color: #fff; border-radius: 99px; font-size: 10px; padding: 0 6px; }
+
+  .cart { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; margin: 10px 12px 0; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; font-size: 12px; text-align: center; }
+  .seg span { padding: 5px; } .seg .on { background: var(--ink); color: #fff; }
+  .lines { padding: 8px 12px; overflow: hidden; }
+  .line { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 12px; }
+  .line small { color: var(--mute); grid-column: 1; }
+  .step { display: inline-flex; border: 1.5px solid var(--line); border-radius: 6px; font-size: 11px; }
+  .step i { font-style: normal; padding: 2px 8px; }
+  .sum { padding: 10px 12px; border-top: 1.5px solid var(--line); font-size: 12px; display: grid; gap: 3px; }
+  .sum div { display: flex; justify-content: space-between; }
+  .sum .total { font-size: 18px; font-weight: 700; margin-top: 4px; }
+  .btn { display: block; text-align: center; border-radius: 8px; padding: 11px; font-weight: 700; border: 2px solid var(--ink); }
+  .btn.primary { background: var(--ink); color: #fff; }
+  .btn.ghost { font-weight: 500; border-color: var(--line); }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+  /* overlays */
+  .scrim { position: relative; }
+  .scrim::after { content: ""; position: absolute; inset: 0; background: rgba(29,29,27,.35); }
+  .sheet { position: absolute; z-index: 2; background: var(--paper); border: 2px solid var(--ink); border-radius: 12px; padding: 14px; }
+  .center { left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  .bottom { left: 0; right: 0; bottom: 0; border-radius: 16px 16px 0 0; border-bottom: 0; }
+  .sheet h3 { margin: 0 0 8px; font-size: 15px; }
+  .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .keys span, .chips span { border: 1.5px solid var(--line); border-radius: 8px; text-align: center; padding: 8px 0; font-size: 13px; }
+  .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+  .chips .on { border-color: var(--ink); background: var(--fill); font-weight: 700; }
+  .big { font-size: 28px; font-weight: 800; }
+  .kv { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+  .kv.hl { font-size: 16px; font-weight: 700; color: var(--ok); }
+  .field { border: 1.5px solid var(--line); border-radius: 8px; padding: 8px; font-size: 12px; color: var(--mute); margin: 6px 0; }
+  .opt { display: flex; justify-content: space-between; border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 5px 0; font-size: 13px; }
+  .opt.on { border-color: var(--ink); background: var(--fill); }
+  .pin { display: flex; gap: 8px; justify-content: center; margin: 10px 0; }
+  .pin i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink); }
+  .pin i.f { background: var(--ink); }
+  .banner { background: #fdf6e8; border-bottom: 1.5px solid var(--warn); color: var(--warn); font-size: 12px; padding: 6px 12px; }
+
+  /* tap markers */
+  .tap { position: absolute; z-index: 3; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff;
+    font: 700 12px/22px system-ui; text-align: center; box-shadow: 0 0 0 3px #fff; }
+  .rel { position: relative; }
+
+  /* receipt */
+  .receipt { width: 220px; background: #fff; border: 1.5px dashed var(--ink); padding: 12px; font: 11px/1.5 ui-monospace, Consolas, monospace; }
+  .receipt .c { text-align: center; } .receipt hr { border: 0; border-top: 1px dashed var(--ink); margin: 6px 0; }
+  .receipt .r { display: flex; justify-content: space-between; }
+
+  table { border-collapse: collapse; width: 100%; max-width: 760px; font-size: 13px; background: var(--paper); }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--fill); }
+  .phonebar { position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 1; display: flex; justify-content: space-between; align-items: center;
+    background: var(--ink); color: #fff; border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 700; }
+  .pgrid { padding: 10px; display: grid; grid-template-rows: auto auto 1fr; gap: 8px; overflow: hidden; }
+  .pgrid .grid { grid-template-columns: repeat(3, 1fr); }
+
+  @media (max-width: 760px) {
+    .tablet { aspect-ratio: auto; height: 560px; }
+    .pos { grid-template-columns: 1fr 44%; }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>H One FoodBiz — POS wireframe</h1>
+  <p class="lede">Low-fidelity layout for the cashier screen, M0. Fictional outlet <b>Dapur Senja · Jakarta</b>, terminal T1. Numbers match the database tests: 2 × Nasi Ayam + 1 × Es Teh, PB1 10%, total Rp60.500. Red circles count taps for a 3-item cash sale. The PRD target is ≤ 6 taps.</p>
+
+  <!-- 1 ─────────────────────────────── -->
+  <h2>1 · Kasir, tablet landscape (main layout)</h2>
+  <p class="note">The catalog fills two-thirds of the screen and the cart stays visible. One tap on a tile adds 1 item. Tapping again adds +1 (the badge shows the qty). The status bar always shows sync status and the active shift.</p>
+  <div class="frame tablet rel">
+    <div class="bar"><b>Dapur Senja · Jakarta</b><span>T1</span><span class="pill">Shift #12 · Rina · sejak 07:02</span><span class="grow"></span><span class="pill ok">● Online · 0 antre</span><span>☰</span></div>
+    <div class="pos">
+      <div class="catalog">
+        <div class="search">🔍 Cari menu atau SKU…</div>
+        <div class="tabs"><span class="tab on">Semua</span><span class="tab">Makanan</span><span class="tab">Minuman</span><span class="tab">Camilan</span><span class="tab">Paket</span></div>
+        <div class="grid">
+          <div class="item rel"><span class="tap" style="left:-8px;top:-8px">1</span><span class="tap" style="left:16px;top:-8px">2</span><span class="qty">2</span><div class="img"></div><b>Nasi Ayam</b>25.000</div>
+          <div class="item"><div class="img"></div><b>Nasi Rames</b>18.000</div>
+          <div class="item"><div class="img"></div><b>Mie Goreng</b>20.000 · varian</div>
+          <div class="item out"><div class="img"></div><b>Soto Ayam</b>Habis (0)</div>
+          <div class="item rel"><span class="tap" style="left:-8px;top:-8px">3</span><span class="qty">1</span><div class="img"></div><b>Es Teh</b>5.000</div>
+          <div class="item"><div class="img"></div><b>Es Jeruk</b>7.000</div>
+          <div class="item"><div class="img"></div><b>Kopi Tubruk</b>6.000</div>
+          <div class="item"><div class="img"></div><b>Tempe Mendoan</b>10.000</div>
+        </div>
+      </div>
+      <div class="cart">
+        <div class="seg"><span>Makan di sini</span><span class="on">Bungkus</span></div>
+        <div class="lines">
+          <div class="line"><span>Nasi Ayam</span><b>50.000</b><small>25.000 ×</small><span class="step"><i>−</i><i>2</i><i>+</i></span></div>
+          <div class="line"><span>Es Teh</span><b>5.000</b><small>5.000 · catatan: less sugar</small><span class="step"><i>−</i><i>1</i><i>+</i></span></div>
+        </div>
+        <div class="sum">
+          <div><span>Subtotal</span><span>55.000</span></div>
+          <div><span>Diskon</span><span>—  <u>tambah</u></span></div>
+          <div><span>PB1 10%</span><span>5.500</span></div>
+          <div class="total"><span>Total</span><span>Rp60.500</span></div>
+          <div class="actions" style="margin-top:6px"><span class="btn ghost">Simpan</span><span class="btn ghost">Batal</span></div>
+          <span class="btn primary rel" style="margin-top:6px"><span class="tap" style="left:-10px;top:-10px">4</span>Bayar Rp60.500</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="label">Simpan = hold order (dine-in, belum bayar). Long-press on a cart line opens notes, item discount, and delete.</p>
+
+  <!-- 2 ─────────────────────────────── -->
+  <h2>2 · Pembayaran</h2>
+  <p class="note">Opens as a center sheet. "Uang pas" and the nearest denominations are pre-calculated, so most cash sales need one tap. The keypad is only for odd amounts. Change is shown in large green text.</p>
+  <div class="frame tablet scrim rel">
+    <div class="bar"><b>Dapur Senja · Jakarta</b><span class="grow"></span><span class="pill ok">● Online</span></div>
+    <div></div>
+    <div class="sheet center" style="width:min(520px,92%)">
+      <h3>Bayar</h3>
+      <div class="big">Rp60.500</div>
+      <div class="chips" style="grid-template-columns:repeat(4,1fr)"><span class="on">Tunai</span><span>QRIS</span><span>Transfer</span><span>Split</span></div>
+      <div class="chips rel"><span>Uang pas</span><span class="on rel"><span class="tap" style="left:-8px;top:-8px">5</span>100.000</span><span>70.000</span><span>65.000</span></div>
+      <div class="field">Diterima: <b style="color:var(--ink)">100.000</b></div>
+      <div class="keys"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>000</span><span>0</span><span>⌫</span></div>
+      <div class="kv hl" style="margin-top:8px"><span>Kembalian</span><span>Rp39.500</span></div>
+      <span class="btn primary rel" style="margin-top:8px"><span class="tap" style="left:-10px;top:-10px">6</span>Selesai</span>
+    </div>
+  </div>
+  <p class="label">QRIS/Transfer: shows the "Sudah diterima" toggle and an optional reference number. Manual for now, no payment gateway. Split: add a row per method until the remainder is 0.</p>
+
+  <!-- 3 ─────────────────────────────── -->
+  <h2>3 · Selesai + struk</h2>
+  <p class="note">If a default printer exists, the receipt prints automatically. The screen returns to the empty catalog after 3 seconds or on the next tap. The receipt is a snapshot from <code>sale_items</code> and does not follow later price changes.</p>
+  <div class="row">
+    <div class="frame" style="width:340px;padding:18px;text-align:center">
+      <div style="font-size:40px;color:var(--ok)">✓</div>
+      <div class="kv hl" style="justify-content:center">Kembalian Rp39.500</div>
+      <p class="note" style="margin:6px 0 14px">JKT-T1-20261126-0001 · tersimpan</p>
+      <div class="actions"><span class="btn ghost">Cetak ulang</span><span class="btn ghost">PDF / Bagikan</span></div>
+      <span class="btn primary" style="margin-top:8px">Transaksi baru</span>
+    </div>
+    <div class="receipt">
+      <div class="c"><b>DAPUR SENJA</b><br>Jl. Contoh No. 1, Jakarta<br>0812-0000-0000</div><hr>
+      <div>JKT-T1-20261126-0001</div><div>26/11/2026 12:41 · Rina · Bungkus</div><hr>
+      <div>Nasi Ayam</div><div class="r"><span>2 x 25.000</span><span>50.000</span></div>
+      <div>Es Teh</div><div class="r"><span>1 x 5.000</span><span>5.000</span></div><hr>
+      <div class="r"><span>Subtotal</span><span>55.000</span></div>
+      <div class="r"><span>PB1 10%</span><span>5.500</span></div>
+      <div class="r"><b>TOTAL</b><b>60.500</b></div>
+      <div class="r"><span>Tunai</span><span>100.000</span></div>
+      <div class="r"><span>Kembali</span><span>39.500</span></div><hr>
+      <div class="c">Terima kasih!<br>58 mm</div>
+    </div>
+  </div>
+
+  <!-- 4 ─────────────────────────────── -->
+  <h2>4 · Ponsel portrait</h2>
+  <p class="note">Same flow, different layout. The cart becomes a sticky bar at the bottom. Tapping the bar opens the cart as a bottom sheet. "Bayar" on the bar jumps straight to payment, so the tap count stays at 6.</p>
+  <div class="row">
+    <div>
+      <div class="frame phone">
+        <div class="bar"><b>JKT · T1</b><span class="grow"></span><span class="pill ok">● 0</span></div>
+        <div class="pgrid">
+          <div class="search">🔍 Cari menu…</div>
+          <div class="tabs"><span class="tab on">Semua</span><span class="tab">Makanan</span><span class="tab">Minuman</span></div>
+          <div class="grid">
+            <div class="item"><span class="qty">2</span><div class="img"></div><b>Nasi Ayam</b>25.000</div>
+            <div class="item"><div class="img"></div><b>Nasi Rames</b>18.000</div>
+            <div class="item"><div class="img"></div><b>Mie Goreng</b>20.000</div>
+            <div class="item"><span class="qty">1</span><div class="img"></div><b>Es Teh</b>5.000</div>
+            <div class="item"><div class="img"></div><b>Es Jeruk</b>7.000</div>
+            <div class="item"><div class="img"></div><b>Kopi</b>6.000</div>
+          </div>
+        </div>
+        <div></div>
+        <div class="phonebar"><span>3 item · Rp60.500</span><span>Bayar →</span></div>
+      </div>
+      <p class="label">Katalog + bar keranjang</p>
+    </div>
+    <div>
+      <div class="frame phone scrim">
+        <div class="bar"><b>JKT · T1</b></div><div></div><div></div>
+        <div class="sheet bottom">
+          <h3>Keranjang · Bungkus</h3>
+          <div class="line"><span>Nasi Ayam</span><b>50.000</b><small>25.000 ×</small><span class="step"><i>−</i><i>2</i><i>+</i></span></div>
+          <div class="line"><span>Es Teh</span><b>5.000</b><small>5.000 ×</small><span class="step"><i>−</i><i>1</i><i>+</i></span></div>
+          <div class="sum" style="padding:8px 0 0;border:0">
+            <div><span>PB1 10%</span><span>5.500</span></div>
+            <div class="total"><span>Total</span><span>Rp60.500</span></div>
+          </div>
+          <span class="btn primary" style="margin-top:8px">Bayar Rp60.500</span>
+        </div>
+      </div>
+      <p class="label">Keranjang (bottom sheet)</p>
+    </div>
+    <div>
+      <div class="frame phone scrim">
+        <div class="bar"><b>JKT · T1</b></div><div></div><div></div>
+        <div class="sheet bottom">
+          <h3>Mie Goreng</h3>
+          <div class="note" style="margin:0">Ukuran</div>
+          <div class="opt on"><span>Biasa</span><span>20.000</span></div>
+          <div class="opt"><span>Jumbo</span><span>26.000</span></div>
+          <div class="note" style="margin:6px 0 0">Tambahan</div>
+          <div class="opt on"><span>☑ Telur</span><span>+3.000</span></div>
+          <div class="opt"><span>☐ Bakso</span><span>+5.000</span></div>
+          <div class="field">Catatan: pedas sedang</div>
+          <span class="btn primary">Tambah · 23.000</span>
+        </div>
+      </div>
+      <p class="label">Varian + modifier, only for products that have them</p>
+    </div>
+  </div>
+
+  <!-- 5 ─────────────────────────────── -->
+  <h2>5 · Offline</h2>
+  <p class="note">When offline, a yellow banner shows the queue count. Cash keeps working. QRIS/Transfer stay selectable but are marked "verifikasi nanti". Void/refund and closing a shift are disabled with a reason, because they need the server.</p>
+  <div class="frame tablet" style="grid-template-rows:44px auto 1fr">
+    <div class="bar"><b>Dapur Senja · Jakarta</b><span>T1</span><span class="grow"></span><span class="pill warn">● Offline · 4 antre</span></div>
+    <div class="banner">Tidak ada koneksi. Transaksi tunai tetap jalan dan akan dikirim otomatis. Terakhir sinkron 12:38.</div>
+    <div class="pos">
+      <div class="catalog"><div class="search">🔍 Cari menu…</div><div class="tabs"><span class="tab on">Semua</span></div><div class="grid"><div class="item"><div class="img"></div><b>Nasi Ayam</b>25.000</div><div class="item"><div class="img"></div><b>Es Teh</b>5.000</div></div></div>
+      <div class="cart"><div></div><div class="lines"><p class="note">Menu ☰ → Void / Tutup shift: <i>“Butuh koneksi”</i></p></div><div class="sum"><span class="btn primary">Bayar</span></div></div>
+    </div>
+  </div>
+
+  <!-- 6 ─────────────────────────────── -->
+  <h2>6 · Void dengan PIN manajer</h2>
+  <p class="note">From transaction history → detail → Void. The manager picks their name and enters the 6-digit PIN on the cashier's device. A reason is required. This maps to <code>record_refund(... 'void' ...)</code>.</p>
+  <div class="row">
+    <div class="frame" style="width:320px;padding:16px">
+      <h3 style="margin:0 0 6px;font-size:15px">Void JKT-T1-…-0001</h3>
+      <div class="kv"><span>Total</span><b>Rp60.500</b></div>
+      <div class="field">Alasan: salah input ▾</div>
+      <div class="field">Disetujui oleh: Budi (Manajer) ▾</div>
+      <div class="pin"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div>
+      <div class="keys"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span></span><span>0</span><span>⌫</span></div>
+      <span class="btn primary" style="margin-top:8px;background:var(--accent);border-color:var(--accent)">Void transaksi</span>
+    </div>
+    <div class="frame" style="width:320px;padding:16px">
+      <h3 style="margin:0 0 6px;font-size:15px">Tutup shift #12</h3>
+      <div class="kv"><span>Modal awal</span><span>200.000</span></div>
+      <div class="kv"><span>Penjualan tunai</span><span>60.500</span></div>
+      <div class="kv"><span>Refund tunai</span><span>−5.500</span></div>
+      <div class="kv"><span>Kas keluar</span><span>−20.000</span></div>
+      <div class="kv" style="border-top:1px solid var(--line);margin-top:4px;padding-top:6px"><b>Seharusnya</b><b>235.000</b></div>
+      <div class="field">Uang dihitung: <b style="color:var(--ink)">235.000</b></div>
+      <div class="kv hl"><span>Selisih</span><span>0</span></div>
+      <span class="btn primary" style="margin-top:8px">Tutup &amp; cetak rekap</span>
+    </div>
+  </div>
+  <p class="label">Per the ERD, the expected figure is computed on the server. The screen shows the server result after the queue is empty.</p>
+
+  <!-- 7 ─────────────────────────────── -->
+  <h2>Tap budget & decisions</h2>
+  <table>
+    <tr><th>#</th><th>Tap</th><th>Screen</th></tr>
+    <tr><td>1–2</td><td>Nasi Ayam ×2</td><td>Kasir</td></tr>
+    <tr><td>3</td><td>Es Teh</td><td>Kasir</td></tr>
+    <tr><td>4</td><td>Bayar</td><td>Kasir</td></tr>
+    <tr><td>5</td><td>100.000 (chip) or Uang pas</td><td>Pembayaran</td></tr>
+    <tr><td>6</td><td>Selesai → auto print</td><td>Pembayaran</td></tr>
+  </table>
+  <p class="note" style="margin-top:12px">6 taps, matching the PRD target. Same count on a phone.</p>
+  <table>
+    <tr><th>Decision</th><th>Why</th></tr>
+    <tr><td>Tile = +1, no qty dialog</td><td>The most common orders are 1–2 portions. A dialog would add a tap to every item.</td></tr>
+    <tr><td>Variant sheet only when the product has variants/modifiers</td><td>Most warung menu items have none, so they stay 1 tap.</td></tr>
+    <tr><td>Cash chips pre-calculated (exact, nearest denominations)</td><td>Saves typing the amount on most cash sales.</td></tr>
+    <tr><td>Default order type set per outlet (Bungkus / Makan di sini)</td><td>The cashier rarely needs to change it.</td></tr>
+    <tr><td>Sync status always in the bar</td><td>The cashier should know before closing a shift whether anything is still queued.</td></tr>
+    <tr><td>Out-of-stock tiles are dimmed but still tappable</td><td>Stock can be wrong. Blocking a sale is worse than a negative balance (see ERD).</td></tr>
+  </table>
+</main>
+</body>
+</html>

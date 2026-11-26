@@ -1,0 +1,32 @@
+{
+  "name": "hone-foodbiz",
+  "version": "0.1.0",
+  "private": true,
+  "description": "H One FoodBiz: open-source POS and bookkeeping for warung to restaurants",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test:db": "node --test supabase/tests/schema.test.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
+    "next": "16.4.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.16",
+    "@tailwindcss/turbopack": "4.3.3",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "4.3.3",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
