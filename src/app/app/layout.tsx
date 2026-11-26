@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { AppNav } from "@/components/app-nav";
@@ -16,12 +17,13 @@ export default async function AppLayout({ children }: LayoutProps<"/app">) {
           <span className="hidden text-sm text-on-surface-variant sm:block">
             {ctx.displayName} · {ROLE_LABEL[ctx.role]}
           </span>
-          <span
-            aria-hidden
-            className="grid size-10 place-items-center rounded-full bg-tertiary-container text-sm font-extrabold text-on-tertiary-container"
+          <Link
+            href="/app/akun"
+            aria-label="Akun dan PIN"
+            className="press grid size-10 place-items-center rounded-full bg-tertiary-container text-sm font-extrabold text-on-tertiary-container"
           >
             {initials}
-          </span>
+          </Link>
           <form action={signOut}>
             <button
               type="submit"

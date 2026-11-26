@@ -8,7 +8,7 @@ import { PrintButton } from "./print-button";
 export const metadata = { title: "Struk" };
 
 type Sale = {
-  id: string; outlet_id: string; receipt_no: string; order_type: string; subtotal: string; service_rate: string; service_total: string;
+  id: string; outlet_id: string; receipt_no: string; order_type: string; subtotal: string; discount_total: string; service_rate: string; service_total: string;
   tax_rate: string; tax_inclusive: boolean; tax_total: string; rounding: string; total: string; cashier_id: string; created_at: string; status: string;
 };
 type Item = { product_name: string; variant_name: string | null; modifiers: { name: string; price: number }[]; qty: string; unit_price: string; line_total: string };
@@ -93,6 +93,7 @@ export default async function StrukPage({ params, searchParams }: PageProps<"/ka
         ))}
         <Hr />
         <Pair left="Subtotal" right={fmt(s.subtotal)} />
+        {Number(s.discount_total) > 0 && <Pair left="Diskon" right={`-${fmt(s.discount_total)}`} />}
         {Number(s.service_total) > 0 && <Pair left={`Service ${Number(s.service_rate)}%`} right={fmt(s.service_total)} />}
         {Number(s.tax_total) > 0 && <Pair left={`PB1 ${Number(s.tax_rate)}%${s.tax_inclusive ? " (termasuk)" : ""}`} right={fmt(s.tax_total)} />}
         {Number(s.rounding) !== 0 && <Pair left="Pembulatan" right={fmt(s.rounding)} />}

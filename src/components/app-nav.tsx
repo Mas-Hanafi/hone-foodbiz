@@ -2,16 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { House, Plus, ShoppingCart, Store, UsersRound, UtensilsCrossed } from "lucide-react";
+import { House, Plus, ReceiptText, ShoppingCart, Store, UsersRound, UtensilsCrossed } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type Item = { href: string; label: string; icon: LucideIcon };
 
-const BASE: Item[] = [
-  { href: "/app", label: "Beranda", icon: House },
-  { href: "/app/catalog", label: "Katalog", icon: UtensilsCrossed },
-  { href: "/app/outlets", label: "Outlet", icon: Store },
-];
+const HOME: Item = { href: "/app", label: "Beranda", icon: House };
+const SALES: Item = { href: "/app/transaksi", label: "Transaksi", icon: ReceiptText };
+const CATALOG: Item = { href: "/app/catalog", label: "Katalog", icon: UtensilsCrossed };
+const OUTLETS: Item = { href: "/app/outlets", label: "Outlet", icon: Store };
 const STAFF: Item = { href: "/app/staff", label: "Staf", icon: UsersRound };
 const KASIR: Item = { href: "/kasir", label: "Kasir", icon: ShoppingCart };
 const ADD_HREF = "/app/catalog?tambah=1#tambah-menu";
@@ -21,8 +20,9 @@ const isActive = (path: string, href: string) => (href === "/app" ? path === "/a
 /** M3 navigation rail on wide screens (add FAB + Kasir item); on phones a bar whose loud centre button opens the cashier. */
 export function AppNav({ showStaff }: { showStaff: boolean }) {
   const path = usePathname();
-  const items = showStaff ? [...BASE, STAFF] : BASE;
-  const railItems = [items[0], KASIR, ...items.slice(1)];
+  const railItems = [HOME, KASIR, SALES, CATALOG, OUTLETS, ...(showStaff ? [STAFF] : [])];
+  // M3 navigation bar holds at most five; Staf is reached from Beranda's quick actions on phones.
+  const items = [HOME, SALES, CATALOG, OUTLETS];
 
   return (
     <>

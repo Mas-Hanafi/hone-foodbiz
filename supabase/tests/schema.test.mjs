@@ -164,6 +164,14 @@ test('signed-out callers cannot run any RPC', async () => {
   await assert.rejects(anon(`select public.set_my_pin('123456')`), /permission/)
 })
 
+test('approvers list shows only PIN holders, only to staff of that outlet', async () => {
+  const names = (await as(U.cashier, `select display_name from public.list_approvers($1)`, [S.outlet1])).map((r) => r.display_name)
+  assert.deepEqual(names, ['Budi']) // manager set a PIN; owner did not
+  assert.equal((await as(U.cashier2, `select * from public.list_approvers($1)`, [S.outlet1])).length, 0)
+  const anon = (sql, p) => db.transaction(async (tx) => { await tx.exec('set local role anon'); return tx.query(sql, p) })
+  await assert.rejects(anon(`select * from public.list_approvers($1)`, [S.outlet1]), /permission/)
+})
+
 test('void needs a manager PIN, returns stock, and can only happen once', async () => {
   const v = (rid, pin) => as(U.cashier, `select public.record_refund($1,$2,'void',null,null,null,'salah input',$3,$4)`,
     [rid, id(1001), U.manager, pin])

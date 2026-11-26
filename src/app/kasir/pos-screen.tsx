@@ -35,12 +35,15 @@ const METHODS: { id: Method; label: string }[] = [
 const lineKey = (productId: string, variantId: string | null, modifierIds: string[]) =>
   [productId, variantId ?? "", [...modifierIds].sort().join(",")].join("|");
 
-export function PosScreen({ catalog, outlet, initialMessage }: { catalog: PosCatalog; outlet: PosOutlet; initialMessage?: string }) {
+export function PosScreen({ catalog, outlet, discountCap, initialMessage }: {
+  catalog: PosCatalog; outlet: PosOutlet; discountCap: number | null; initialMessage?: string;
+}) {
   const router = useRouter();
   const [lines, setLines] = useState<Line[]>([]);
   const [category, setCategory] = useState<string>("");
   const [query, setQuery] = useState("");
   const [orderType, setOrderType] = useState<"takeaway" | "dine_in">("takeaway");
+  const [discountPct, setDiscountPct] = useState(0);
   const [picking, setPicking] = useState<PosProduct | null>(null);
   const [method, setMethod] = useState<Method>("cash");
   const [tendered, setTendered] = useState(0);
@@ -60,6 +63,7 @@ export function PosScreen({ catalog, outlet, initialMessage }: { catalog: PosCat
   const totalsFor = (m: Method) =>
     computeTotals({
       lines: lines.map((l) => ({ unitPrice: l.unitPrice, qty: l.qty })),
+      discountPct,
       serviceRate: outlet.service_rate, taxRate: outlet.tax_rate, taxInclusive: outlet.tax_inclusive, cashRounding: outlet.cash_rounding,
       method: m,
     });
@@ -111,6 +115,7 @@ export function PosScreen({ catalog, outlet, initialMessage }: { catalog: PosCat
         id: saleId.current,
         orderType,
         method,
+        discountPct,
         tendered: method === "cash" ? tendered : due.total,
         lines: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, modifierIds: l.modifierIds, qty: l.qty })),
       });
@@ -125,7 +130,10 @@ export function PosScreen({ catalog, outlet, initialMessage }: { catalog: PosCat
       orderType={orderType}
       setOrderType={setOrderType}
       setQty={setQty}
-      clear={() => setLines([])}
+      clear={() => { setLines([]); setDiscountPct(0); }}
+      discountPct={discountPct}
+      setDiscountPct={setDiscountPct}
+      discountCap={discountCap}
       totals={preview}
       outlet={outlet}
       onPay={openPay}
@@ -312,12 +320,15 @@ export function PosScreen({ catalog, outlet, initialMessage }: { catalog: PosCat
   );
 }
 
-function CartPanel({ lines, orderType, setOrderType, setQty, clear, totals, outlet, onPay }: {
+function CartPanel({ lines, orderType, setOrderType, setQty, clear, discountPct, setDiscountPct, discountCap, totals, outlet, onPay }: {
   lines: Line[];
   orderType: "takeaway" | "dine_in";
   setOrderType: (t: "takeaway" | "dine_in") => void;
   setQty: (key: string, qty: number) => void;
   clear: () => void;
+  discountPct: number;
+  setDiscountPct: (pct: number) => void;
+  discountCap: number | null;
   totals: ReturnType<typeof computeTotals>;
   outlet: PosOutlet;
   onPay: () => void;
@@ -367,6 +378,40 @@ function CartPanel({ lines, orderType, setOrderType, setQty, clear, totals, outl
 
       <div className="grid gap-1.5 border-t border-outline-variant/60 p-4 text-sm">
         <Row label="Subtotal" value={totals.subtotal} />
+        {lines.length > 0 && (
+          <div className="flex items-center justify-between gap-2 py-1">
+            <span className="text-on-surface-variant">
+              Diskon{discountCap !== null && <span className="block text-xs">maks. {discountCap}% untuk kasir</span>}
+            </span>
+            <span className="flex items-center gap-1">
+              {[0, 5, 10].filter((p) => discountCap === null || p <= discountCap).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  aria-pressed={discountPct === p}
+                  onClick={() => setDiscountPct(p)}
+                  className={`press num min-h-9 rounded-lg px-2.5 text-xs font-bold ${discountPct === p ? "bg-secondary-container text-on-secondary-container" : "border border-outline"}`}
+                >
+                  {p ? `${p}%` : "Tanpa"}
+                </button>
+              ))}
+              <label className="relative">
+                <span className="sr-only">Diskon persen lain</span>
+                <input
+                  inputMode="decimal"
+                  value={[0, 5, 10].includes(discountPct) ? "" : String(discountPct)}
+                  placeholder="%"
+                  onChange={(e) => {
+                    const v = Math.min(Number(e.target.value.replace(",", ".")) || 0, discountCap ?? 100);
+                    setDiscountPct(Math.max(0, v));
+                  }}
+                  className="num min-h-9 w-14 rounded-lg border border-outline bg-surface-lowest px-2 text-center text-xs font-bold focus:border-primary focus:outline-none"
+                />
+              </label>
+            </span>
+          </div>
+        )}
+        {totals.discount > 0 && <Row label={`Potongan ${discountPct}%`} value={-totals.discount} />}
         {outlet.service_rate > 0 && <Row label={`Service ${outlet.service_rate}%`} value={totals.service} />}
         {outlet.tax_rate > 0 && <Row label={`PB1 ${outlet.tax_rate}%${outlet.tax_inclusive ? " (termasuk)" : ""}`} value={totals.tax} />}
         <p className="num mt-1 flex items-baseline justify-between font-display text-2xl font-extrabold">

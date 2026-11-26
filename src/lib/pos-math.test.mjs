@@ -7,17 +7,17 @@ const lines = [{ unitPrice: 25000, qty: 2 }, { unitPrice: 5000, qty: 1 }] // 55.
 
 // The same identity the sales CHECK constraint enforces.
 const satisfiesCheck = (t, inclusive) =>
-  t.total === t.subtotal + t.service + (inclusive ? 0 : t.tax) + t.rounding
+  t.total === t.subtotal - t.discount + t.service + (inclusive ? 0 : t.tax) + t.rounding
 
 test('PB1 10% exclusive, no service: matches the wireframe and DB test (60.500)', () => {
   const t = computeTotals({ lines, serviceRate: 0, taxRate: 10, taxInclusive: false, cashRounding: 0, method: 'cash' })
-  assert.deepEqual(t, { subtotal: 55000, service: 0, tax: 5500, rounding: 0, total: 60500 })
+  assert.deepEqual(t, { subtotal: 55000, discount: 0, service: 0, tax: 5500, rounding: 0, total: 60500 })
   assert.ok(satisfiesCheck(t, false))
 })
 
 test('service is taxed: 5% service then 10% PB1 on food + service', () => {
   const t = computeTotals({ lines, serviceRate: 5, taxRate: 10, taxInclusive: false, cashRounding: 0, method: 'qris' })
-  assert.deepEqual(t, { subtotal: 55000, service: 2750, tax: 5775, rounding: 0, total: 63525 })
+  assert.deepEqual(t, { subtotal: 55000, discount: 0, service: 2750, tax: 5775, rounding: 0, total: 63525 })
 })
 
 test('cash rounding to Rp500 applies to cash only', () => {
@@ -34,6 +34,14 @@ test('tax-inclusive prices: tax is shown but not added', () => {
   assert.equal(t.total, 55000)
   assert.equal(t.tax, 5000)
   assert.ok(satisfiesCheck(t, true))
+})
+
+test('order discount comes off before service and tax, and still satisfies the CHECK', () => {
+  const t = computeTotals({ lines, discountPct: 10, serviceRate: 5, taxRate: 10, taxInclusive: false, cashRounding: 500, method: 'cash' })
+  // 55.000 - 5.500 = 49.500; service 2.475; PB1 5.198 (of 51.975); 57.173 -> cash 57.000
+  assert.deepEqual(t, { subtotal: 55000, discount: 5500, service: 2475, tax: 5198, rounding: -173, total: 57000 })
+  assert.ok(satisfiesCheck(t, false))
+  assert.equal(computeTotals({ lines, discountPct: 150, serviceRate: 0, taxRate: 0, taxInclusive: false, cashRounding: 0, method: 'qris' }).total, 0)
 })
 
 test('empty cart totals zero', () => {

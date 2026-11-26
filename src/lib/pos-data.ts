@@ -11,7 +11,7 @@ export async function terminalFromCookie(): Promise<string | null> {
 
 export type PosOutlet = {
   id: string; code: string; name: string; timezone: string;
-  tax_rate: number; tax_inclusive: boolean; service_rate: number; cash_rounding: number;
+  tax_rate: number; tax_inclusive: boolean; service_rate: number; cash_rounding: number; max_cashier_discount_pct: number;
 };
 export type PosTerminal = { id: string; code: string; name: string; outlet_id: string };
 export type PosModifier = { id: string; name: string; price: number };
@@ -30,13 +30,14 @@ export async function loadTerminal(ctx: AppContext, terminalId: string) {
   if (!t) return null;
   const { data: o } = await ctx.supabase
     .from("outlets")
-    .select("id, code, name, timezone, tax_rate, tax_inclusive, service_rate, cash_rounding")
+    .select("id, code, name, timezone, tax_rate, tax_inclusive, service_rate, cash_rounding, max_cashier_discount_pct")
     .eq("id", t.outlet_id)
     .maybeSingle();
   if (!o) return null;
   const outlet: PosOutlet = {
     id: o.id, code: o.code, name: o.name, timezone: o.timezone,
     tax_rate: num(o.tax_rate), tax_inclusive: Boolean(o.tax_inclusive), service_rate: num(o.service_rate), cash_rounding: num(o.cash_rounding),
+    max_cashier_discount_pct: num(o.max_cashier_discount_pct),
   };
   return { terminal: t as PosTerminal, outlet };
 }

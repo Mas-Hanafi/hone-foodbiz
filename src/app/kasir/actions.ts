@@ -49,12 +49,39 @@ export async function closeShift(formData: FormData) {
   redirect(`${POS}/shift?tutup=${shift_id}`);
 }
 
+export async function moveCash(formData: FormData) {
+  const back = `${POS}/shift`;
+  const input = parse(
+    z.object({ direction: z.enum(["in", "out"], "invalid"), amount: rupiah, reason: z.string().trim().min(1, "reason") }),
+    formData,
+    back,
+  );
+  if (input.amount <= 0) fail(back, "price");
+  const ctx = await getContext();
+  const terminalId = await terminalFromCookie();
+  const pos = terminalId ? await loadTerminal(ctx, terminalId) : null;
+  const shift = pos ? await loadOpenShift(ctx, pos.terminal.id) : null;
+  if (!pos || !shift) fail(back, "noShift");
+  const { error } = await ctx.supabase.from("cash_movements").insert({
+    id: crypto.randomUUID(),
+    business_id: ctx.businessId,
+    outlet_id: pos.outlet.id,
+    shift_id: shift.id,
+    direction: input.direction,
+    amount: input.amount,
+    reason: input.reason,
+  });
+  if (error) fail(back, dbError(error));
+  done(back, "cashMoved");
+}
+
 // ── sale ──
 const saleInput = z.object({
   id: z.uuid(),
   orderType: z.enum(["takeaway", "dine_in"]),
   method: z.enum(["cash", "qris", "transfer"]),
   tendered: z.number().int().nonnegative(),
+  discountPct: z.number().min(0).max(100),
   lines: z
     .array(
       z.object({
@@ -110,11 +137,17 @@ export async function recordSale(raw: SaleInput): Promise<SaleResult> {
   }
 
   const o = pos.outlet;
+  // Cashier discount cap is enforced here; managers and owners are not capped.
+  if (ctx.role === "cashier" && input.discountPct > o.max_cashier_discount_pct) {
+    return { ok: false, message: `Diskon kasir maksimal ${o.max_cashier_discount_pct}%. Minta manajer untuk diskon lebih besar.` };
+  }
   const totals = computeTotals({
     lines: items.map((i) => ({ unitPrice: i.unit_price, qty: i.qty })),
+    discountPct: input.discountPct,
     serviceRate: o.service_rate, taxRate: o.tax_rate, taxInclusive: o.tax_inclusive, cashRounding: o.cash_rounding,
     method: input.method,
   });
+  if (totals.total <= 0) return { ok: false, message: "Total harus lebih dari Rp0." };
   const tendered = input.method === "cash" ? input.tendered : totals.total;
   if (tendered < totals.total) return { ok: false, message: "Uang yang diterima kurang dari total." };
 
@@ -144,7 +177,7 @@ export async function recordSale(raw: SaleInput): Promise<SaleResult> {
         business_date: date,
         created_at: now.toISOString(),
         order_type: input.orderType,
-        discount_total: 0,
+        discount_total: totals.discount,
         tax_rate: o.tax_rate,
         tax_inclusive: o.tax_inclusive,
         tax_total: totals.tax,

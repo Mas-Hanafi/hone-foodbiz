@@ -1,10 +1,10 @@
 import { ArrowLeft, CircleCheck, TriangleAlert } from "lucide-react";
 import { Submit } from "@/components/submit-button";
-import { ButtonLink, Card, Field, Notice, flash } from "@/components/ui";
+import { ButtonLink, Card, Field, Notice, SelectField, flash } from "@/components/ui";
 import { rupiah } from "@/lib/format";
 import { loadOpenShift, loadTerminal, terminalFromCookie } from "@/lib/pos-data";
 import { getContext } from "@/lib/session";
-import { closeShift } from "../actions";
+import { closeShift, moveCash } from "../actions";
 
 export const metadata = { title: "Tutup shift" };
 
@@ -13,7 +13,7 @@ type ClosedShift = { opening_float: string; counted_cash: string; expected_cash:
 export default async function ShiftPage({ searchParams }: PageProps<"/kasir/shift">) {
   const ctx = await getContext();
   const sp = await searchParams;
-  const { error } = await flash(searchParams);
+  const { error, ok } = await flash(searchParams);
   const closedId = typeof sp.tutup === "string" ? sp.tutup : null;
 
   if (closedId) {
@@ -60,19 +60,36 @@ export default async function ShiftPage({ searchParams }: PageProps<"/kasir/shif
     : { data: [] };
   const cashIn = ((cash ?? []) as { amount: string }[]).reduce((sum, p) => sum + Number(p.amount), 0);
   const revenue = live.reduce((sum, s) => sum + Number(s.total), 0);
+  const { data: moveRows } = await ctx.supabase
+    .from("cash_movements")
+    .select("id, direction, amount, reason, created_at")
+    .eq("shift_id", shift.id)
+    .order("created_at");
+  const moves = (moveRows ?? []) as { id: string; direction: "in" | "out"; amount: string; reason: string; created_at: string }[];
+  const movedNet = moves.reduce((sum, m) => sum + (m.direction === "in" ? 1 : -1) * Number(m.amount), 0);
+  const { data: refundRows } = await ctx.supabase
+    .from("refunds")
+    .select("amount")
+    .eq("shift_id", shift.id)
+    .eq("kind", "refund")
+    .eq("method", "cash");
+  const cashRefunds = ((refundRows ?? []) as { amount: string }[]).reduce((sum, r) => sum + Number(r.amount), 0);
+  const hhmm = (iso: string) => new Intl.DateTimeFormat("id-ID", { timeStyle: "short", timeZone: pos.outlet.timezone }).format(new Date(iso));
 
   return (
     <Page>
       <h1 className="text-[1.9rem] leading-[1.05] sm:text-4xl font-extrabold tracking-tight">Tutup shift</h1>
       <p className="mt-1 mb-6 text-on-surface-variant">{pos.outlet.name} · {pos.terminal.name}</p>
-      <Notice error={error} />
+      <Notice error={error} ok={ok} />
       <div className="grid gap-5 md:grid-cols-2">
         <Card tone="secondary">
           <dl className="num grid gap-2">
             <Pair label="Transaksi" value={String(live.length)} />
             <Pair label="Omzet" value={rupiah(revenue)} />
             <Pair label="Modal awal" value={rupiah(shift.opening_float)} />
-            <Pair label="Tunai masuk" value={rupiah(cashIn)} />
+            <Pair label="Tunai dari penjualan" value={rupiah(cashIn)} />
+            <Pair label="Refund tunai" value={rupiah(-cashRefunds)} />
+            <Pair label="Kas masuk/keluar" value={rupiah(movedNet)} />
           </dl>
           <p className="mt-4 text-sm opacity-85">Angka &quot;seharusnya di laci&quot; dihitung server saat shift ditutup, termasuk refund dan kas keluar.</p>
         </Card>
@@ -84,6 +101,32 @@ export default async function ShiftPage({ searchParams }: PageProps<"/kasir/shif
           </form>
         </Card>
       </div>
+
+      <Card title="Kas masuk dan keluar" className="mt-5">
+        <p className="mb-4 text-sm text-on-surface-variant">Uang tunai yang masuk atau keluar laci di luar penjualan, mis. beli es batu atau tambah uang kecil.</p>
+        {moves.length > 0 && (
+          <ul className="mb-5 grid">
+            {moves.map((m) => (
+              <li key={m.id} className="flex min-h-12 items-center gap-3 border-b border-outline-variant/60 last:border-0">
+                <span className="num w-12 text-sm text-on-surface-variant">{hhmm(m.created_at)}</span>
+                <span className="flex-1 font-bold">{m.reason}</span>
+                <span className={`num font-extrabold ${m.direction === "out" ? "text-error" : "text-tertiary"}`}>
+                  {rupiah((m.direction === "in" ? 1 : -1) * Number(m.amount))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <form action={moveCash} className="grid gap-3 sm:grid-cols-[9rem_10rem_1fr_auto] sm:items-end">
+          <SelectField label="Jenis" name="direction" defaultValue="out">
+            <option value="out">Kas keluar</option>
+            <option value="in">Kas masuk</option>
+          </SelectField>
+          <Field label="Jumlah" name="amount" prefix="Rp" inputMode="numeric" required />
+          <Field label="Alasan" name="reason" placeholder="Beli es batu" required />
+          <Submit look="outlined">Catat</Submit>
+        </form>
+      </Card>
     </Page>
   );
 }

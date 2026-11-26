@@ -92,11 +92,13 @@ export default async function KasirPage({ searchParams }: PageProps<"/kasir">) {
           <p className="truncate font-display text-lg font-extrabold">{pos.outlet.name}</p>
           <p className="truncate text-xs text-on-surface-variant">{pos.terminal.name} · {ctx.displayName} · shift sejak {openedAt} · modal {rupiah(shift.opening_float)}</p>
         </div>
-        <Link href="/kasir/shift" className="press rounded-full border border-outline px-4 py-2 text-sm font-bold text-primary hover:bg-primary/8">Tutup shift</Link>
+        <Link href="/app/transaksi" className="press hidden rounded-full px-4 py-2 text-sm font-bold text-primary hover:bg-primary/8 sm:block">Riwayat</Link>
+        <Link href="/kasir/shift" className="press rounded-full border border-outline px-4 py-2 text-sm font-bold text-primary hover:bg-primary/8">Shift</Link>
       </header>
       <PosScreen
         catalog={catalog}
         outlet={pos.outlet}
+        discountCap={ctx.role === "cashier" ? pos.outlet.max_cashier_discount_pct : null}
         initialMessage={error ? undefined : ok}
       />
     </div>

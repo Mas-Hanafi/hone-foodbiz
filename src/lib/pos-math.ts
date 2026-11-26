@@ -6,6 +6,7 @@ export type Method = "cash" | "qris" | "transfer";
 
 export type TotalsInput = {
   lines: { unitPrice: number; qty: number }[];
+  discountPct?: number; // order discount, percent of subtotal
   serviceRate: number; // percent
   taxRate: number; // percent
   taxInclusive: boolean;
@@ -13,18 +14,20 @@ export type TotalsInput = {
   method: Method;
 };
 
-export type Totals = { subtotal: number; service: number; tax: number; rounding: number; total: number };
+export type Totals = { subtotal: number; discount: number; service: number; tax: number; rounding: number; total: number };
 
 export function computeTotals(input: TotalsInput): Totals {
   const subtotal = input.lines.reduce((sum, l) => sum + l.unitPrice * l.qty, 0);
-  const service = Math.round((subtotal * input.serviceRate) / 100);
-  const base = subtotal + service; // PB1 is charged on food plus service
+  const discount = Math.round((subtotal * Math.min(Math.max(input.discountPct ?? 0, 0), 100)) / 100);
+  const net = subtotal - discount; // discount comes off before service and tax
+  const service = Math.round((net * input.serviceRate) / 100);
+  const base = net + service; // PB1 is charged on food plus service
   const rate = input.taxRate / 100;
   const tax = input.taxInclusive ? Math.round(base - base / (1 + rate)) : Math.round(base * rate);
   const beforeRounding = base + (input.taxInclusive ? 0 : tax);
   const step = input.cashRounding;
   const rounding = input.method === "cash" && step > 0 ? Math.round(beforeRounding / step) * step - beforeRounding : 0;
-  return { subtotal, service, tax, rounding, total: beforeRounding + rounding };
+  return { subtotal, discount, service, tax, rounding, total: beforeRounding + rounding };
 }
 
 /** Exact amount plus the next common banknote totals above it, at most four. */
